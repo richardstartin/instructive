@@ -179,7 +179,7 @@ class NotUnrolledLoopTest {
             data[i] = i * 31;
         }
         int sink = 0;
-        for (int i = 0; i < 2000; i++) {
+        for (int i = 0; i < 20000; i++) {
             sink += kernel.applyAsInt(data); // compile it
         }
         Sampler.resetCounts();

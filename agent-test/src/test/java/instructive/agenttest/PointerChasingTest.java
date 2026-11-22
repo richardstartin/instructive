@@ -99,7 +99,7 @@ class PointerChasingTest {
             list.add(i);
         }
         int sink = 0;
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 100000; i++) {
             sink += sum.of(list); // compile it
         }
         Sampler.resetCounts();
