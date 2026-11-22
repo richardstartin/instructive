@@ -198,14 +198,7 @@ class DependencyChainTest {
         } finally {
             Sampler.stop();
         }
-        InstructionProfile[] hottest = new InstructionProfile[1];
-        Sampler.forEachHottestMethod(Integer.MAX_VALUE, profile -> {
-            if (hottest[0] == null && profile.name().contains(name)) {
-                hottest[0] = profile.snapshot();
-            }
-        });
-        assertNotNull(hottest[0], "no samples of " + name);
-        return hottest[0];
+        return CompiledCopies.hottestC2(name);
     }
 
     private static InstructionProfile profileArraysHashCode() {
@@ -227,10 +220,9 @@ class DependencyChainTest {
         } finally {
             Sampler.stop();
         }
-        InstructionProfile[] hottest = new InstructionProfile[1];
-        Sampler.forEachHottestMethod(1, profile -> hottest[0] = profile.snapshot());
-        assertNotNull(hottest[0], "no samples; sink " + sink);
-        return hottest[0];
+        assertTrue(sink != 42);
+        // java.util.Arrays.hashCode([I)I, or the ArraysSupport.hashCode it calls on newer JDKs.
+        return CompiledCopies.hottestC2(".hashCode([I");
     }
 
     private static String describe(InstructionProfile profile, List<DependencyChain> chains) {

@@ -20,11 +20,19 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+// The kernels the analysis tests profile are compiled by C2 only (C1 excluded), and in
+// the foreground, so their C2 code is in place when their warm-up returns: otherwise, on
+// a busy machine, the profile can catch a C1 copy, which the analyses don't apply to.
+// Not FailedCheckTest's: what C2 compiles after a check fails depends on the method being
+// profiled again by C1, which records the exception; without C1 it compiles a trap.
+val compilerDirectives = file("src/test/compiler-directives.json")
+
 // Every test JVM runs with the agent, and the compile commands the tests rely on.
 tasks.withType<Test>().configureEach {
     // The agent's native unit tests run wherever its integration tests do, CI included.
     dependsOn(":agent:nativeTest")
     inputs.files(agentJar)
+    inputs.file(compilerDirectives)
     jvmArgumentProviders.add(CommandLineArgumentProvider {
         listOf(
             "-javaagent:${agentJar.singleFile.absolutePath}",
@@ -35,6 +43,7 @@ tasks.withType<Test>().configureEach {
             "-XX:+IgnoreUnrecognizedVMOptions",
             "-XX:+UnlockDiagnosticVMOptions",
             "-XX:-UseVectorizedHashCodeIntrinsic",
+            "-XX:CompilerDirectivesFile=${compilerDirectives.absolutePath}",
             "-XX:CompileCommand=exclude,instructive.agenttest.CodeCacheTest::interpretedLoop",
             // DependencyChainTest profiles these as methods of their own.
             "-XX:CompileCommand=dontinline,instructive.agenttest.DependencyChainTest::encodeDeltas",

@@ -1,0 +1,13 @@
+[{
+  match: [
+    "instructive/agenttest/PointerChasingTest.sum*",
+    "instructive/agenttest/NotUnrolledLoopTest.add*",
+    "instructive/agenttest/NotUnrolledLoopTest.sum*",
+    "instructive/agenttest/DependencyChainTest.encodeDeltas",
+    "instructive/agenttest/DependencyChainTest.decodeDeltas",
+    "java/util/Arrays.hashCode",
+    "jdk/internal/util/ArraysSupport.hashCode"
+  ],
+  BackgroundCompilation: false,
+  c1: { Exclude: true }
+}]

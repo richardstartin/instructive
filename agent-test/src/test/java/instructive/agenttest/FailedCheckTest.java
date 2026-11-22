@@ -182,14 +182,8 @@ class FailedCheckTest {
             Sampler.stop();
         }
         String method = "FailedCheckTest." + name + "(";
-        InstructionProfile[] hottest = new InstructionProfile[1];
-        Sampler.forEachHottestMethod(Integer.MAX_VALUE, profile -> {
-            if (hottest[0] == null && profile.name().contains(method)) {
-                hottest[0] = profile.snapshot();
-            }
-        });
-        assertNotNull(hottest[0], "no samples of " + name + " (" + sink + ")");
-        return hottest[0];
+        assertTrue(sink != 42);
+        return CompiledCopies.hottestC2(method);
     }
 
     private static String describe(InstructionProfile profile, List<FailedCheck> checks) {
