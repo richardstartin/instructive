@@ -329,6 +329,21 @@ class LongDependencyChainRuleTest {
     }
 
     @Test
+    void ranksTheRecurrenceAboveTheChainLeadingIntoIt() {
+        // Arrays.hashCode's unrolled loop, from a CI run where every sample landed on an
+        // instruction that both the recurrence and the straight-line chain into it (the
+        // first element's address and load, then the cycle) contain. The chain is two
+        // instructions longer than the cycle, so on a tie in samples it came first.
+        Listing method = Listing.load("hash-code-tied.tsv");
+        List<DependencyChain> chains = new LongDependencyChainRule().apply(method.code(), registers, method::count);
+        assertFalse(chains.isEmpty());
+        DependencyChain hottest = chains.get(0);
+        assertEquals(DependencyChain.Kind.LOOP_CARRIED, hottest.kind(), describe(chains));
+        assertEquals(24, hottest.criticalPathLength(), describe(chains));
+        assertEquals(81, hottest.samples(), describe(chains));
+    }
+
+    @Test
     void rejectsChainsShorterThanTwo() {
         assertThrows(IllegalArgumentException.class, () -> new LongDependencyChainRule(1, 8));
         assertThrows(IllegalArgumentException.class, () -> new LongDependencyChainRule(16, 0));
