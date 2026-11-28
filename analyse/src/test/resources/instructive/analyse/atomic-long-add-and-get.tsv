@@ -1,0 +1,108 @@
+# Fetch.atomicLong(LAtomicLong;[I)J: for (int i = 0; i < d.length; i++) s += a.addAndGet(d[i])
+# C2 on JDK 25, Linux aarch64, one second of samples. Columns: bytes, samples, offset and disassembly.
+1f 20 03 d5	0	+0x000  nop
+e9 53 40 d1	0	+0x004  sub x9, sp, #0x14, lsl #12
+3f 01 00 f9	0	+0x008  str xzr, [x9]
+ff c3 00 d1	0	+0x00c  sub sp, sp, #0x30
+fd 7b 02 a9	0	+0x010  stp x29, x30, [sp, #0x20]
+e8 0b 00 18	0	+0x014  ldr w8, 0xffff8ffac690
+89 23 40 b9	0	+0x018  ldr w9, [x28, #0x20]
+1f 01 09 eb	0	+0x01c  cmp x8, x9
+e1 0a 00 54	0	+0x020  b.ne 0xffff8ffac67c
+ee 03 01 aa	0	+0x024  mov x14, x1
+4a 0c 40 b9	0	+0x028  ldr w10, [x2, #0xc]
+4a 08 00 34	0	+0x02c  cbz w10, 0xffff8ffac634
+4c 05 00 51	0	+0x030  sub w12, w10, #0x1
+9f 01 0a 6b	0	+0x034  cmp w12, w10
+22 08 00 54	0	+0x038  b.hs 0xffff8ffac63c
+01 08 00 b4	0	+0x03c  cbz x1, 0xffff8ffac63c
+4c 10 80 b9	0	+0x040  ldrsw x12, [x2, #0x10]
+2b 40 00 91	0	+0x044  add x11, x1, #0x10
+6f 01 ec f8	0	+0x048  ldaddal x12, x15, [x11]
+4b 0d 00 51	0	+0x04c  sub w11, w10, #0x3
+ed 03 00 32	0	+0x050  orr w13, wzr, #0x1
+e0 01 0c 8b	0	+0x054  add x0, x15, x12
+7f 05 00 71	0	+0x058  cmp w11, #0x1
+ad 04 00 54	0	+0x05c  b.le 0xffff8ffac5f0
+27 40 00 91	0	+0x060  add x7, x1, #0x10
+33 40 00 91	0	+0x064  add x19, x1, #0x10
+34 40 00 91	0	+0x068  add x20, x1, #0x10
+35 40 00 91	0	+0x06c  add x21, x1, #0x10
+0c f4 81 52	0	+0x070  mov w12, #0xfa0
+4f 01 0d 4b	0	+0x074  sub w15, w10, w13
+7f 01 0d 6b	0	+0x078  cmp w11, w13
+f0 0d 00 51	0	+0x07c  sub w16, w15, #0x3
+f0 b3 90 1a	0	+0x080  csel w16, wzr, w16, lt
+1f 82 3e 71	0	+0x084  cmp w16, #0xfa0
+90 81 90 1a	0	+0x088  csel w16, w12, w16, hi
+0f 02 0d 0b	0	+0x08c  add w15, w16, w13
+50 c8 2d 8b	1	+0x090  add x16, x2, w13, sxtw #2
+11 12 80 b9	1	+0x094  ldrsw x17, [x16, #0x10]
+72 02 f1 f8	6	+0x098  ldaddal x17, x18, [x19]
+01 16 80 b9	14	+0x09c  ldrsw x1, [x16, #0x14]
+83 02 e1 f8	5	+0x0a0  ldaddal x1, x3, [x20]
+04 1a 80 b9	11	+0x0a4  ldrsw x4, [x16, #0x18]
+a5 02 e4 f8	6	+0x0a8  ldaddal x4, x5, [x21]
+10 1e 80 b9	12	+0x0ac  ldrsw x16, [x16, #0x1c]
+e6 00 f0 f8	0	+0x0b0  ldaddal x16, x6, [x7]
+51 02 11 8b	18	+0x0b4  add x17, x18, x17
+31 02 00 8b	0	+0x0b8  add x17, x17, x0
+72 00 01 8b	0	+0x0bc  add x18, x3, x1
+51 02 11 8b	0	+0x0c0  add x17, x18, x17
+a0 00 04 8b	4	+0x0c4  add x0, x5, x4
+11 00 11 8b	1	+0x0c8  add x17, x0, x17
+10 02 06 8b	0	+0x0cc  add x16, x16, x6
+ad 11 00 11	2	+0x0d0  add w13, w13, #0x4
+00 02 11 8b	1	+0x0d4  add x0, x16, x17
+bf 01 0f 6b	0	+0x0d8  cmp w13, w15
+ab fd ff 54	0	+0x0dc  b.lt 0xffff8ffac590
+8f 1b 40 f9	0	+0x0e0  ldr x15, [x28, #0x30]
+ff 01 40 b9	0	+0x0e4  ldr wzr, [x15]
+bf 01 0b 6b	0	+0x0e8  cmp w13, w11
+4b fc ff 54	0	+0x0ec  b.lt 0xffff8ffac574
+bf 01 0a 6b	0	+0x0f0  cmp w13, w10
+4a 01 00 54	0	+0x0f4  b.ge 0xffff8ffac61c
+cb 41 00 91	0	+0x0f8  add x11, x14, #0x10
+4c c8 2d 8b	0	+0x0fc  add x12, x2, w13, sxtw #2
+8c 11 80 b9	0	+0x100  ldrsw x12, [x12, #0x10]
+6e 01 ec f8	0	+0x104  ldaddal x12, x14, [x11]
+cc 01 0c 8b	0	+0x108  add x12, x14, x12
+ad 05 00 11	0	+0x10c  add w13, w13, #0x1
+00 00 0c 8b	0	+0x110  add x0, x0, x12
+bf 01 0a 6b	0	+0x114  cmp w13, w10
+2b ff ff 54	0	+0x118  b.lt 0xffff8ffac5fc
+fd 7b 42 a9	0	+0x11c  ldp x29, x30, [sp, #0x20]
+ff c3 00 91	0	+0x120  add sp, sp, #0x30
+88 17 40 f9	0	+0x124  ldr x8, [x28, #0x28]
+ff 63 28 eb	0	+0x128  cmp sp, x8
+28 02 00 54	0	+0x12c  b.hi 0xffff8ffac670
+c0 03 5f d6	0	+0x130  ret
+e0 03 1f aa	0	+0x134  mov x0, xzr
+f9 ff ff 17	0	+0x138  b 0xffff8ffac61c
+21 12 80 12	0	+0x13c  mov w1, #-0x92
+fd 03 0e aa	0	+0x140  mov x29, x14
+e2 03 00 f9	0	+0x144  str x2, [sp]
+ea 0b 00 b9	0	+0x148  str w10, [sp, #0x8]
+8d 9a ec 97	0	+0x14c  bl 0xffff8fad3080
+1f 20 03 d5	0	+0x150  nop
+1f 49 80 f2	0	+0x154  movk xzr, #0x248
+1f 20 80 f2	0	+0x158  movk xzr, #0x100
+21 01 80 12	0	+0x15c  mov w1, #-0xa
+88 9a ec 97	0	+0x160  bl 0xffff8fad3080
+1f 20 03 d5	0	+0x164  nop
+9f 4b 80 f2	0	+0x168  movk xzr, #0x25c
+1f 40 80 f2	0	+0x16c  movk xzr, #0x200
+a8 fd ff 10	0	+0x170  adr x8, 0xffff8ffac624
+88 a3 02 f9	0	+0x174  str x8, [x28, #0x540]
+82 41 e9 17	0	+0x178  b 0xffff8f9fcc80
+08 30 88 d2	0	+0x17c  mov x8, #0x4180
+08 f4 b1 f2	0	+0x180  movk x8, #0x8fa0, lsl #16
+e8 ff df f2	0	+0x184  movk x8, #0xffff, lsl #32
+00 01 3f d6	0	+0x188  blr x8
+a6 ff ff 17	0	+0x18c  b 0xffff8ffac524
+01 00 00 00	0	+0x190  udf #0x1
+00 00 00 00	0	+0x194  udf #0x0
+da 9a ec 17	0	+0x198  b 0xffff8fad3200
+1e 00 00 10	0	+0x19c  adr x30, 0xffff8ffac69c
+f8 41 e9 17	0	+0x1a0  b 0xffff8f9fce80
+00 00 00 00	0	+0x1a4  udf #0x0

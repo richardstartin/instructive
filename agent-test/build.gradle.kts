@@ -69,6 +69,8 @@ tasks.withType<Test>().configureEach {
             // MissedVectorisationTest's kernels, each profiled as a method of its own.
             "-XX:CompileCommand=dontinline,instructive.agenttest.MissedVectorisationTest::daxpy*",
             "-XX:CompileCommand=dontinline,instructive.agenttest.MissedVectorisationTest::intersect",
+            // FetchInLoopTest's loops, each profiled as a method of its own.
+            "-XX:CompileCommand=dontinline,instructive.agenttest.FetchInLoopTest::*",
             // DispatchAttributionTest profiles the loop as a method of its own.
             "-XX:CompileCommand=dontinline,instructive.agenttest.DispatchAttributionTest::sumAreas",
             // MethodNamesTest looks for these as compiled methods of their own.

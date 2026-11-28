@@ -1,0 +1,118 @@
+# Fetch.plain([J[I)J: for (int i = 0; i < d.length; i++) box[0] += d[i]
+# C2 on JDK 25, Linux aarch64, one second of samples. Columns: bytes, samples, offset and disassembly.
+1f 20 03 d5	0	+0x000  nop
+e9 53 40 d1	0	+0x004  sub x9, sp, #0x14, lsl #12
+3f 01 00 f9	0	+0x008  str xzr, [x9]
+ff c3 00 d1	0	+0x00c  sub sp, sp, #0x30
+fd 7b 02 a9	0	+0x010  stp x29, x30, [sp, #0x20]
+28 0d 00 18	0	+0x014  ldr w8, 0xffff8fff4f38
+89 23 40 b9	0	+0x018  ldr w9, [x28, #0x20]
+1f 01 09 eb	0	+0x01c  cmp x8, x9
+21 0c 00 54	0	+0x020  b.ne 0xffff8fff4f24
+ea 03 01 aa	0	+0x024  mov x10, x1
+4e 0c 40 b9	0	+0x028  ldr w14, [x2, #0xc]
+4e 07 00 34	0	+0x02c  cbz w14, 0xffff8fff4e94
+2c 0c 40 b9	0	+0x030  ldr w12, [x1, #0xc]
+f1 03 00 32	0	+0x034  orr w17, wzr, #0x1
+cb 05 00 51	0	+0x038  sub w11, w14, #0x1
+c0 1d 00 51	0	+0x03c  sub w0, w14, #0x7
+cc 07 00 34	0	+0x040  cbz w12, 0xffff8fff4eb8
+7f 01 0e 6b	0	+0x044  cmp w11, w14
+82 07 00 54	0	+0x048  b.hs 0xffff8fff4eb8
+2c 08 40 f9	0	+0x04c  ldr x12, [x1, #0x10]
+4b 10 40 b9	0	+0x050  ldr w11, [x2, #0x10]
+8b c1 2b 8b	0	+0x054  add x11, x12, w11, sxtw
+2b 08 00 f9	0	+0x058  str x11, [x1, #0x10]
+1f 04 00 71	0	+0x05c  cmp w0, #0x1
+8d 04 00 54	0	+0x060  b.le 0xffff8fff4e70
+12 e8 83 52	0	+0x064  mov w18, #0x1f40
+cc 01 11 4b	0	+0x068  sub w12, w14, w17
+1f 00 11 6b	0	+0x06c  cmp w0, w17
+8d 1d 00 51	0	+0x070  sub w13, w12, #0x7
+ed b3 8d 1a	0	+0x074  csel w13, wzr, w13, lt
+08 e8 83 52	0	+0x078  mov w8, #0x1f40
+bf 01 08 6b	0	+0x07c  cmp w13, w8
+4d 82 8d 1a	0	+0x080  csel w13, w18, w13, hi
+a3 01 11 0b	0	+0x084  add w3, w13, w17
+1f 20 03 d5	0	+0x088  nop
+1f 20 03 d5	0	+0x08c  nop
+4c c8 31 8b	0	+0x090  add x12, x2, w17, sxtw #2
+8d 3d 42 29	0	+0x094  ldp w13, w15, [x12, #0x10]
+6b c1 2d 8b	0	+0x098  add x11, x11, w13, sxtw
+90 19 40 b9	0	+0x09c  ldr w16, [x12, #0x18]
+6b c1 2f 8b	0	+0x0a0  add x11, x11, w15, sxtw
+8d 1d 40 b9	0	+0x0a4  ldr w13, [x12, #0x1c]
+6b c1 30 8b	0	+0x0a8  add x11, x11, w16, sxtw
+90 21 40 b9	0	+0x0ac  ldr w16, [x12, #0x20]
+6b c1 2d 8b	0	+0x0b0  add x11, x11, w13, sxtw
+81 25 40 b9	0	+0x0b4  ldr w1, [x12, #0x24]
+6b c1 30 8b	0	+0x0b8  add x11, x11, w16, sxtw
+8f 29 40 b9	0	+0x0bc  ldr w15, [x12, #0x28]
+6b c1 21 8b	0	+0x0c0  add x11, x11, w1, sxtw
+8c 2d 40 b9	97	+0x0c4  ldr w12, [x12, #0x2c]
+6b c1 2f 8b	0	+0x0c8  add x11, x11, w15, sxtw
+31 22 00 11	0	+0x0cc  add w17, w17, #0x8
+6b c1 2c 8b	0	+0x0d0  add x11, x11, w12, sxtw
+3f 02 03 6b	0	+0x0d4  cmp w17, w3
+cb fd ff 54	0	+0x0d8  b.lt 0xffff8fff4e10
+8c 1b 40 f9	0	+0x0dc  ldr x12, [x28, #0x30]
+4b 09 00 f9	0	+0x0e0  str x11, [x10, #0x10]
+9f 01 40 b9	0	+0x0e4  ldr wzr, [x12]
+3f 02 00 6b	0	+0x0e8  cmp w17, w0
+eb fb ff 54	0	+0x0ec  b.lt 0xffff8fff4de8
+3f 02 0e 6b	0	+0x0f0  cmp w17, w14
+0a 01 00 54	0	+0x0f4  b.ge 0xffff8fff4e94
+4c c8 31 8b	0	+0x0f8  add x12, x2, w17, sxtw #2
+8d 11 40 b9	0	+0x0fc  ldr w13, [x12, #0x10]
+31 06 00 11	0	+0x100  add w17, w17, #0x1
+6b c1 2d 8b	0	+0x104  add x11, x11, w13, sxtw
+3f 02 0e 6b	0	+0x108  cmp w17, w14
+6b ff ff 54	0	+0x10c  b.lt 0xffff8fff4e78
+4b 09 00 f9	0	+0x110  str x11, [x10, #0x10]
+4c 0d 40 b9	0	+0x114  ldr w12, [x10, #0xc]
+0c 02 00 34	0	+0x118  cbz w12, 0xffff8fff4ed8
+40 09 40 f9	0	+0x11c  ldr x0, [x10, #0x10]
+fd 7b 42 a9	0	+0x120  ldp x29, x30, [sp, #0x20]
+ff c3 00 91	0	+0x124  add sp, sp, #0x30
+88 17 40 f9	0	+0x128  ldr x8, [x28, #0x28]
+ff 63 28 eb	0	+0x12c  cmp sp, x8
+48 03 00 54	0	+0x130  b.hi 0xffff8fff4f18
+c0 03 5f d6	0	+0x134  ret
+21 12 80 12	0	+0x138  mov w1, #-0x92
+fd 03 0a aa	0	+0x13c  mov x29, x10
+e2 03 00 f9	0	+0x140  str x2, [sp]
+ee 0b 00 b9	0	+0x144  str w14, [sp, #0x8]
+6e 78 eb 97	0	+0x148  bl 0xffff8fad3080
+1f 20 03 d5	0	+0x14c  nop
+9f 48 80 f2	0	+0x150  movk xzr, #0x244
+1f 20 80 f2	0	+0x154  movk xzr, #0x100
+61 03 80 12	0	+0x158  mov w1, #-0x1c
+fd 03 0a aa	0	+0x15c  mov x29, x10
+68 78 eb 97	0	+0x160  bl 0xffff8fad3080
+1f 20 03 d5	0	+0x164  nop
+9f 4b 80 f2	0	+0x168  movk xzr, #0x25c
+1f 40 80 f2	0	+0x16c  movk xzr, #0x200
+21 01 80 12	0	+0x170  mov w1, #-0xa
+63 78 eb 97	0	+0x174  bl 0xffff8fad3080
+1f 20 03 d5	0	+0x178  nop
+1f 4e 80 f2	0	+0x17c  movk xzr, #0x270
+1f 60 80 f2	0	+0x180  movk xzr, #0x300
+21 01 80 12	0	+0x184  mov w1, #-0xa
+5e 78 eb 97	0	+0x188  bl 0xffff8fad3080
+1f 20 03 d5	0	+0x18c  nop
+9f 50 80 f2	0	+0x190  movk xzr, #0x284
+1f 80 80 f2	0	+0x194  movk xzr, #0x400
+88 fc ff 10	0	+0x198  adr x8, 0xffff8fff4ea8
+88 a3 02 f9	0	+0x19c  str x8, [x28, #0x540]
+58 1f e8 17	0	+0x1a0  b 0xffff8f9fcc80
+08 30 88 d2	0	+0x1a4  mov x8, #0x4180
+08 f4 b1 f2	0	+0x1a8  movk x8, #0x8fa0, lsl #16
+e8 ff df f2	0	+0x1ac  movk x8, #0xffff, lsl #32
+00 01 3f d6	0	+0x1b0  blr x8
+9c ff ff 17	0	+0x1b4  b 0xffff8fff4da4
+01 00 00 00	0	+0x1b8  udf #0x1
+00 00 00 00	0	+0x1bc  udf #0x0
+b0 78 eb 17	0	+0x1c0  b 0xffff8fad3200
+1e 00 00 10	0	+0x1c4  adr x30, 0xffff8fff4f44
+ce 1f e8 17	0	+0x1c8  b 0xffff8f9fce80
+00 00 00 00	0	+0x1cc  udf #0x0

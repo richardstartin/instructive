@@ -1,0 +1,136 @@
+# Fetch.atomicIntegerCas(LAtomicInteger;[I)I: for (int i = 0; i < d.length; i++) if (a.compareAndSet(i - 1, i)) s++
+# C2 on JDK 25, Linux x86-64 (SSE4.2, Rosetta on an Apple M2), one second of samples. Columns: bytes, samples, offset and disassembly.
+89 84 24 00 c0 fe ff	0	+0x000  mov dword ptr [rsp - 0x14000], eax
+55	0	+0x007  push rbp
+48 83 ec 30	0	+0x008  sub rsp, 0x30
+41 81 7f 20 01 00 00 00	0	+0x00c  cmp dword ptr [r15 + 0x20], 0x1
+0f 85 b0 01 00 00	0	+0x014  jne 0x7fffe802f5ca
+48 8b fe	0	+0x01a  mov rdi, rsi
+4c 8b da	0	+0x01d  mov r11, rdx
+44 8b 42 0c	0	+0x020  mov r8d, dword ptr [rdx + 0xc]
+45 85 c0	0	+0x024  test r8d, r8d
+0f 86 08 01 00 00	0	+0x027  jbe 0x7fffe802f535
+48 85 f6	0	+0x02d  test rsi, rsi
+0f 84 3a 01 00 00	0	+0x030  je 0x7fffe802f570
+b8 ff ff ff ff	0	+0x036  mov eax, 0xffffffff
+45 33 d2	0	+0x03b  xor r10d, r10d
+f0 44 0f b1 56 0c	0	+0x03e  lock cmpxchg dword ptr [rsi + 0xc], r10d
+41 0f 94 c1	0	+0x044  sete r9b
+45 0f b6 c9	0	+0x048  movzx r9d, r9b
+45 85 c9	0	+0x04c  test r9d, r9d
+0f 85 45 01 00 00	0	+0x04f  jne 0x7fffe802f59a
+41 8b c8	0	+0x055  mov ecx, r8d
+83 c1 fd	0	+0x058  add ecx, -0x3
+83 f9 01	0	+0x05b  cmp ecx, 0x1
+0f 8e 2c 01 00 00	0	+0x05e  jle 0x7fffe802f590
+bb a0 0f 00 00	0	+0x064  mov ebx, 0xfa0
+ba 01 00 00 00	0	+0x069  mov edx, 0x1
+41 8b f0	0	+0x06e  mov esi, r8d
+2b f2	0	+0x071  sub esi, edx
+83 c6 fd	0	+0x073  add esi, -0x3
+45 33 c9	0	+0x076  xor r9d, r9d
+3b ca	0	+0x079  cmp ecx, edx
+41 0f 4c f1	0	+0x07b  cmovl esi, r9d
+81 fe a0 0f 00 00	0	+0x07f  cmp esi, 0xfa0
+0f 47 f3	0	+0x085  cmova esi, ebx
+03 f2	0	+0x088  add esi, edx
+66 0f 1f 44 00 00	0	+0x08a  nop word ptr [rax + rax]
+8b c2	0	+0x090  mov eax, edx
+ff c8	0	+0x092  dec eax
+f0 0f b1 57 0c	3	+0x094  lock cmpxchg dword ptr [rdi + 0xc], edx
+41 0f 94 c1	0	+0x099  sete r9b
+45 0f b6 c9	0	+0x09d  movzx r9d, r9b
+45 85 c9	0	+0x0a1  test r9d, r9d
+0f 85 9d 00 00 00	0	+0x0a4  jne 0x7fffe802f547
+8b ea	0	+0x0aa  mov ebp, edx
+ff c5	0	+0x0ac  inc ebp
+8b c2	0	+0x0ae  mov eax, edx
+f0 0f b1 6f 0c	32	+0x0b0  lock cmpxchg dword ptr [rdi + 0xc], ebp
+41 0f 94 c1	1	+0x0b5  sete r9b
+45 0f b6 c9	0	+0x0b9  movzx r9d, r9b
+45 85 c9	0	+0x0bd  test r9d, r9d
+0f 85 87 00 00 00	1	+0x0c0  jne 0x7fffe802f54d
+44 8b d2	10	+0x0c6  mov r10d, edx
+41 83 c2 02	0	+0x0c9  add r10d, 0x2
+8b c5	0	+0x0cd  mov eax, ebp
+f0 44 0f b1 57 0c	2	+0x0cf  lock cmpxchg dword ptr [rdi + 0xc], r10d
+41 0f 94 c1	0	+0x0d5  sete r9b
+45 0f b6 c9	0	+0x0d9  movzx r9d, r9b
+45 85 c9	0	+0x0dd  test r9d, r9d
+75 68	1	+0x0e0  jne 0x7fffe802f54a
+8b ea	0	+0x0e2  mov ebp, edx
+83 c5 03	0	+0x0e4  add ebp, 0x3
+41 8b c2	0	+0x0e7  mov eax, r10d
+f0 0f b1 6f 0c	27	+0x0ea  lock cmpxchg dword ptr [rdi + 0xc], ebp
+41 0f 94 c1	0	+0x0ef  sete r9b
+45 0f b6 c9	0	+0x0f3  movzx r9d, r9b
+45 85 c9	0	+0x0f7  test r9d, r9d
+75 51	2	+0x0fa  jne 0x7fffe802f54d
+83 c2 04	18	+0x0fc  add edx, 0x4
+3b d6	0	+0x0ff  cmp edx, esi
+7c 8d	0	+0x101  jl 0x7fffe802f490
+49 8b 77 30	0	+0x103  mov rsi, qword ptr [r15 + 0x30]
+85 06	0	+0x107  test dword ptr [rsi], eax
+3b d1	0	+0x109  cmp edx, ecx
+0f 8c 5d ff ff ff	0	+0x10b  jl 0x7fffe802f46e
+41 3b d0	0	+0x111  cmp edx, r8d
+7d 1f	0	+0x114  jge 0x7fffe802f535
+66 90	0	+0x116  nop
+8b c2	0	+0x118  mov eax, edx
+ff c8	0	+0x11a  dec eax
+f0 0f b1 57 0c	0	+0x11c  lock cmpxchg dword ptr [rdi + 0xc], edx
+41 0f 94 c1	0	+0x121  sete r9b
+45 0f b6 c9	0	+0x125  movzx r9d, r9b
+45 85 c9	0	+0x129  test r9d, r9d
+75 70	0	+0x12c  jne 0x7fffe802f59e
+ff c2	0	+0x12e  inc edx
+41 3b d0	0	+0x130  cmp edx, r8d
+7c e3	0	+0x133  jl 0x7fffe802f518
+33 c0	0	+0x135  xor eax, eax
+48 83 c4 30	0	+0x137  add rsp, 0x30
+5d	0	+0x13b  pop rbp
+49 3b 67 28	0	+0x13c  cmp rsp, qword ptr [r15 + 0x28]
+0f 87 6e 00 00 00	0	+0x140  ja 0x7fffe802f5b4
+c3	0	+0x146  ret
+44 8b d2	0	+0x147  mov r10d, edx
+41 8b ea	0	+0x14a  mov ebp, r10d
+be 45 ff ff ff	0	+0x14d  mov esi, 0xffffff45
+48 89 3c 24	0	+0x152  mov qword ptr [rsp], rdi
+44 89 4c 24 08	0	+0x156  mov dword ptr [rsp + 0x8], r9d
+4c 89 5c 24 10	0	+0x15b  mov qword ptr [rsp + 0x10], r11
+66 66 90	0	+0x160  nop
+e8 78 94 ac ff	0	+0x163  call 0x7fffe7af89e0
+0f 1f 84 00 60 02 00 01	0	+0x168  nop dword ptr [rax + rax + 0x1000260]
+be 6e ff ff ff	0	+0x170  mov esi, 0xffffff6e
+48 8b ef	0	+0x175  mov rbp, rdi
+44 89 04 24	0	+0x178  mov dword ptr [rsp], r8d
+48 89 54 24 08	0	+0x17c  mov qword ptr [rsp + 0x8], rdx
+66 90	0	+0x181  nop
+e8 58 94 ac ff	0	+0x183  call 0x7fffe7af89e0
+0f 1f 84 00 80 02 00 02	0	+0x188  nop dword ptr [rax + rax + 0x2000280]
+ba 01 00 00 00	0	+0x190  mov edx, 0x1
+e9 77 ff ff ff	0	+0x195  jmp 0x7fffe802f511
+33 ed	0	+0x19a  xor ebp, ebp
+eb af	0	+0x19c  jmp 0x7fffe802f54d
+8b ea	0	+0x19e  mov ebp, edx
+eb ab	0	+0x1a0  jmp 0x7fffe802f54d
+be f6 ff ff ff	0	+0x1a2  mov esi, 0xfffffff6
+e8 34 94 ac ff	0	+0x1a7  call 0x7fffe7af89e0
+0f 1f 84 00 a4 02 00 03	0	+0x1ac  nop dword ptr [rax + rax + 0x30002a4]
+49 ba 3c f5 02 e8 ff 7f 00 00	0	+0x1b4  movabs r10, 0x7fffe802f53c
+4d 89 97 38 05 00 00	0	+0x1be  mov qword ptr [r15 + 0x538], r10
+e9 16 5e 9f ff	0	+0x1c5  jmp 0x7fffe7a253e0
+e8 31 b8 9d ff	0	+0x1ca  call 0x7fffe7a0ae00
+e9 46 fe ff ff	0	+0x1cf  jmp 0x7fffe802f41a
+f4	0	+0x1d4  hlt
+f4	0	+0x1d5  hlt
+f4	0	+0x1d6  hlt
+f4	0	+0x1d7  hlt
+e9 03 97 ac ff	0	+0x1d8  jmp 0x7fffe7af8ce0
+e8 00 00 00 00	0	+0x1dd  call 0x7fffe802f5e2
+48 83 2c 24 05	0	+0x1e2  sub qword ptr [rsp], 0x5
+e9 f4 60 9f ff	0	+0x1e7  jmp 0x7fffe7a256e0
+f4	0	+0x1ec  hlt
+f4	0	+0x1ed  hlt
+f4	0	+0x1ee  hlt
+f4	0	+0x1ef  hlt
