@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Test;
 class SuperWordDisabledTest {
 
     @BeforeAll
-    static void onlyOnAarch64WithoutSuperWord() {
-        assumeTrue(System.getProperty("os.arch").equals("aarch64"), "the register model is for aarch64");
+    static void onlyOnASupportedArchitectureWithoutSuperWord() {
+        MissedVectorisationTest.onlyOnASupportedArchitecture();
         assumeTrue(java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments()
                 .contains("-XX:-UseSuperWord"), "needs -XX:-UseSuperWord");
     }
@@ -44,12 +44,14 @@ class SuperWordDisabledTest {
         assertTrue(found.lanes() >= 2, report);
         assertEquals(8, found.elementSize(), report);
         assertEquals(List.of("and"), found.operations().stream().map(Instruction::mnemonic).toList(), report);
-        for (List<Instruction> copy : found.copies()) {
-            assertEquals(List.of("ldr", "ldr", "and", "str"),
-                    copy.stream().map(Instruction::mnemonic).toList(), report);
+        // Each copy loads both words, ands them and stores the result. x86 folds one of the
+        // loads into the and.
+        List<String> copy = MissedVectorisationTest.X86 ? List.of("mov", "and", "mov") : List.of("ldr", "ldr", "and", "str");
+        for (List<Instruction> instructions : found.copies()) {
+            assertEquals(copy, instructions.stream().map(Instruction::mnemonic).toList(), report);
         }
         // Only the loop: the stubs after the code hold addresses, which can decode as SIMD.
-        assertEquals(0, MissedVectorisationTest.simd(found.instructions()), report);
+        assertEquals(0, MissedVectorisationTest.vector(found.instructions()), report);
         assertTrue(found.samples() * 4 >= profile.sampled() * 3, report);
     }
 }

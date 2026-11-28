@@ -1,0 +1,154 @@
+# Vec.intersect([J[J[J)V: for (int i = 0; i < c.length; i++) c[i] = a[i] & b[i], vectorised
+# C2 on JDK 25, Linux aarch64, one second of samples. Columns: bytes, samples, offset and disassembly.
+1f 20 03 d5	0	+0x000  nop
+e9 53 40 d1	0	+0x004  sub x9, sp, #0x14, lsl #12
+3f 01 00 f9	0	+0x008  str xzr, [x9]
+ff 03 01 d1	0	+0x00c  sub sp, sp, #0x40
+fd 7b 03 a9	0	+0x010  stp x29, x30, [sp, #0x30]
+c8 11 00 18	0	+0x014  ldr w8, 0xffff6bff54cc
+89 23 40 b9	0	+0x018  ldr w9, [x28, #0x20]
+1f 01 09 eb	0	+0x01c  cmp x8, x9
+c1 10 00 54	0	+0x020  b.ne 0xffff6bff54b8
+eb 03 01 aa	0	+0x024  mov x11, x1
+6f 0c 40 b9	0	+0x028  ldr w15, [x3, #0xc]
+af 0d 00 34	0	+0x02c  cbz w15, 0xffff6bff5460
+ec 03 03 2a	0	+0x030  mov w12, w3
+ea 67 1a 32	0	+0x034  orr w10, wzr, #0xffffffc0
+4c 01 0c 4b	0	+0x038  sub w12, w10, w12
+8a 7d 03 53	0	+0x03c  lsr w10, w12, #3
+2d 0c 40 b9	0	+0x040  ldr w13, [x1, #0xc]
+4a 05 00 51	0	+0x044  sub w10, w10, #0x1
+ee 05 00 51	0	+0x048  sub w14, w15, #0x1
+f0 03 1f 2a	0	+0x04c  mov w16, wzr
+4d 0d 00 34	0	+0x050  cbz w13, 0xffff6bff5478
+df 01 0d 6b	0	+0x054  cmp w14, w13
+02 0d 00 54	0	+0x058  b.hs 0xffff6bff5478
+4d 0c 40 b9	0	+0x05c  ldr w13, [x2, #0xc]
+4a 01 40 d3	0	+0x060  ubfx x10, x10, #0, #1
+ec 7d 40 93	0	+0x064  sxtw x12, w15
+4a 05 00 91	0	+0x068  add x10, x10, #0x1
+6d 0c 00 34	0	+0x06c  cbz w13, 0xffff6bff5478
+df 01 0d 6b	0	+0x070  cmp w14, w13
+22 0c 00 54	0	+0x074  b.hs 0xffff6bff5478
+5f 01 0c eb	0	+0x078  cmp x10, x12
+4a b1 8c 9a	0	+0x07c  csel x10, x10, x12, lt
+f2 3d 00 51	0	+0x080  sub w18, w15, #0xf
+ea 03 0a 2a	0	+0x084  mov w10, w10
+df 01 0f 6b	0	+0x088  cmp w14, w15
+62 0b 00 54	0	+0x08c  b.hs 0xffff6bff5478
+0c 7e 7d 93	0	+0x090  sbfiz x12, x16, #3, #32
+6d 01 0c 8b	0	+0x094  add x13, x11, x12
+4e 00 0c 8b	0	+0x098  add x14, x2, x12
+ad 09 40 f9	0	+0x09c  ldr x13, [x13, #0x10]
+ce 09 40 f9	0	+0x0a0  ldr x14, [x14, #0x10]
+ad 01 0e 8a	0	+0x0a4  and x13, x13, x14
+6c 00 0c 8b	0	+0x0a8  add x12, x3, x12
+8d 09 00 f9	0	+0x0ac  str x13, [x12, #0x10]
+11 06 00 11	0	+0x0b0  add w17, w16, #0x1
+3f 02 0a 6b	0	+0x0b4  cmp w17, w10
+6a 00 00 54	0	+0x0b8  b.ge 0xffff6bff5344
+f0 03 11 2a	0	+0x0bc  mov w16, w17
+f4 ff ff 17	0	+0x0c0  b 0xffff6bff5310
+3f 02 12 6b	0	+0x0c4  cmp w17, w18
+2a 07 00 54	0	+0x0c8  b.ge 0xffff6bff542c
+11 06 00 11	0	+0x0cc  add w17, w16, #0x1
+0a d0 87 52	0	+0x0d0  mov w10, #0x3e80
+ed 01 11 4b	0	+0x0d4  sub w13, w15, w17
+ac 3d 00 51	0	+0x0d8  sub w12, w13, #0xf
+5f 02 11 6b	0	+0x0dc  cmp w18, w17
+ec b3 8c 1a	0	+0x0e0  csel w12, wzr, w12, lt
+08 d0 87 52	0	+0x0e4  mov w8, #0x3e80
+9f 01 08 6b	0	+0x0e8  cmp w12, w8
+4c 81 8c 1a	0	+0x0ec  csel w12, w10, w12, hi
+8d 01 11 0b	0	+0x0f0  add w13, w12, w17
+1f 20 03 d5	0	+0x0f4  nop
+1f 20 03 d5	0	+0x0f8  nop
+1f 20 03 d5	0	+0x0fc  nop
+2c 7e 7d 93	0	+0x100  sbfiz x12, x17, #3, #32
+6e 01 0c 8b	0	+0x104  add x14, x11, x12
+50 00 0c 8b	0	+0x108  add x16, x2, x12
+d0 11 c0 3d	0	+0x10c  ldr q16, [x14, #0x40]
+11 12 c0 3d	0	+0x110  ldr q17, [x16, #0x40]
+d2 05 c0 3d	0	+0x114  ldr q18, [x14, #0x10]
+10 1e 31 4e	0	+0x118  .word 0x4e311e10
+11 06 c0 3d	0	+0x11c  ldr q17, [x16, #0x10]
+6c 00 0c 8b	0	+0x120  add x12, x3, x12
+31 1e 32 4e	0	+0x124  .word 0x4e321e31
+d2 09 c0 3d	0	+0x128  ldr q18, [x14, #0x20]
+13 0a c0 3d	0	+0x12c  ldr q19, [x16, #0x20]
+14 0e c0 3d	4	+0x130  ldr q20, [x16, #0x30]
+72 1e 32 4e	0	+0x134  .word 0x4e321e72
+d3 0d c0 3d	13	+0x138  ldr q19, [x14, #0x30]
+90 11 80 3d	0	+0x13c  str q16, [x12, #0x40]
+91 05 80 3d	0	+0x140  str q17, [x12, #0x10]
+92 09 80 3d	0	+0x144  str q18, [x12, #0x20]
+90 1e 33 4e	0	+0x148  .word 0x4e331e90
+90 0d 80 3d	0	+0x14c  str q16, [x12, #0x30]
+d0 21 c0 3d	0	+0x150  ldr q16, [x14, #0x80]
+11 22 c0 3d	0	+0x154  ldr q17, [x16, #0x80]
+d2 15 c0 3d	2	+0x158  ldr q18, [x14, #0x50]
+10 1e 31 4e	0	+0x15c  .word 0x4e311e10
+11 16 c0 3d	4	+0x160  ldr q17, [x16, #0x50]
+d3 19 c0 3d	11	+0x164  ldr q19, [x14, #0x60]
+51 1e 31 4e	0	+0x168  .word 0x4e311e51
+12 1a c0 3d	3	+0x16c  ldr q18, [x16, #0x60]
+d4 1d c0 3d	3	+0x170  ldr q20, [x14, #0x70]
+52 1e 33 4e	0	+0x174  .word 0x4e331e52
+13 1e c0 3d	1	+0x178  ldr q19, [x16, #0x70]
+90 21 80 3d	3	+0x17c  str q16, [x12, #0x80]
+91 15 80 3d	0	+0x180  str q17, [x12, #0x50]
+92 19 80 3d	5	+0x184  str q18, [x12, #0x60]
+70 1e 34 4e	0	+0x188  .word 0x4e341e70
+90 1d 80 3d	43	+0x18c  str q16, [x12, #0x70]
+31 42 00 11	2	+0x190  add w17, w17, #0x10
+3f 02 0d 6b	0	+0x194  cmp w17, w13
+4b fb ff 54	0	+0x198  b.lt 0xffff6bff5380
+8c 1b 40 f9	0	+0x19c  ldr x12, [x28, #0x30]
+9f 01 40 b9	1	+0x1a0  ldr wzr, [x12]
+3f 02 12 6b	0	+0x1a4  cmp w17, w18
+6b f9 ff 54	0	+0x1a8  b.lt 0xffff6bff5354
+3f 02 0f 6b	0	+0x1ac  cmp w17, w15
+8a 01 00 54	0	+0x1b0  b.ge 0xffff6bff5460
+2a 7e 7d 93	0	+0x1b4  sbfiz x10, x17, #3, #32
+6c 01 0a 8b	0	+0x1b8  add x12, x11, x10
+4d 00 0a 8b	0	+0x1bc  add x13, x2, x10
+8c 09 40 f9	0	+0x1c0  ldr x12, [x12, #0x10]
+ad 09 40 f9	0	+0x1c4  ldr x13, [x13, #0x10]
+8c 01 0d 8a	0	+0x1c8  and x12, x12, x13
+6a 00 0a 8b	0	+0x1cc  add x10, x3, x10
+4c 09 00 f9	1	+0x1d0  str x12, [x10, #0x10]
+31 06 00 11	0	+0x1d4  add w17, w17, #0x1
+3f 02 0f 6b	0	+0x1d8  cmp w17, w15
+cb fe ff 54	0	+0x1dc  b.lt 0xffff6bff5434
+fd 7b 43 a9	0	+0x1e0  ldp x29, x30, [sp, #0x30]
+ff 03 01 91	0	+0x1e4  add sp, sp, #0x40
+88 17 40 f9	0	+0x1e8  ldr x8, [x28, #0x28]
+ff 63 28 eb	0	+0x1ec  cmp sp, x8
+e8 01 00 54	0	+0x1f0  b.hi 0xffff6bff54ac
+c0 03 5f d6	0	+0x1f4  ret
+21 12 80 12	0	+0x1f8  mov w1, #-0x92
+fd 03 0b aa	0	+0x1fc  mov x29, x11
+e2 0f 00 a9	0	+0x200  stp x2, x3, [sp]
+ef 13 00 b9	0	+0x204  str w15, [sp, #0x10]
+ae 78 eb 97	0	+0x208  bl 0xffff6bad3740
+1f 20 03 d5	0	+0x20c  nop
+9f 60 80 f2	0	+0x210  movk xzr, #0x304
+1f 20 80 f2	0	+0x214  movk xzr, #0x100
+21 01 80 12	0	+0x218  mov w1, #-0xa
+a9 78 eb 97	0	+0x21c  bl 0xffff6bad3740
+1f 20 03 d5	0	+0x220  nop
+1f 63 80 f2	0	+0x224  movk xzr, #0x318
+1f 40 80 f2	0	+0x228  movk xzr, #0x200
+e8 fd ff 10	0	+0x22c  adr x8, 0xffff6bff5468
+88 a3 02 f9	0	+0x230  str x8, [x28, #0x540]
+f3 1d e8 17	0	+0x234  b 0xffff6b9fcc80
+08 30 88 d2	0	+0x238  mov x8, #0x4180
+08 74 ad f2	0	+0x23c  movk x8, #0x6ba0, lsl #16
+e8 ff df f2	0	+0x240  movk x8, #0xffff, lsl #32
+00 01 3f d6	0	+0x244  blr x8
+77 ff ff 17	0	+0x248  b 0xffff6bff52a4
+01 00 00 00	0	+0x24c  udf #0x1
+fc 78 eb 17	0	+0x250  b 0xffff6bad38c0
+1e 00 00 10	0	+0x254  adr x30, 0xffff6bff54d4
+6a 1e e8 17	0	+0x258  b 0xffff6b9fce80
+00 00 00 00	0	+0x25c  udf #0x0

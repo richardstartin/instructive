@@ -1,0 +1,155 @@
+# Vec.daxpy(D[D[D)V: for (int i = 0; i < y.length; i++) y[i] += a * x[i], vectorised
+# C2 on JDK 25, Linux x86-64 (SSE4.2, Rosetta on an Apple M2), one second of samples. Columns: bytes, samples, offset and disassembly.
+89 84 24 00 c0 fe ff	0	+0x000  mov dword ptr [rsp - 0x14000], eax
+55	0	+0x007  push rbp
+48 83 ec 30	0	+0x008  sub rsp, 0x30
+41 81 7f 20 01 00 00 00	0	+0x00c  cmp dword ptr [r15 + 0x20], 0x1
+0f 85 7c 02 00 00	0	+0x014  jne 0x7fffe7fe6016
+44 8b 5a 0c	0	+0x01a  mov r11d, dword ptr [rdx + 0xc]
+45 85 db	0	+0x01e  test r11d, r11d
+0f 86 0a 02 00 00	0	+0x021  jbe 0x7fffe7fe5fb1
+45 8b c3	0	+0x027  mov r8d, r11d
+41 ff c8	0	+0x02a  dec r8d
+45 3b c3	0	+0x02d  cmp r8d, r11d
+0f 83 0b 02 00 00	0	+0x030  jae 0x7fffe7fe5fc1
+44 8b 56 0c	0	+0x036  mov r10d, dword ptr [rsi + 0xc]
+45 85 d2	0	+0x03a  test r10d, r10d
+0f 86 fe 01 00 00	0	+0x03d  jbe 0x7fffe7fe5fc1
+45 3b c2	0	+0x043  cmp r8d, r10d
+0f 83 f5 01 00 00	0	+0x046  jae 0x7fffe7fe5fc1
+4d 63 d3	0	+0x04c  movsxd r10, r11d
+44 8b ca	0	+0x04f  mov r9d, edx
+41 b8 c0 ff ff ff	0	+0x052  mov r8d, 0xffffffc0
+45 2b c1	0	+0x058  sub r8d, r9d
+41 c1 e8 03	0	+0x05b  shr r8d, 0x3
+41 ff c8	0	+0x05f  dec r8d
+41 83 e0 01	0	+0x062  and r8d, 0x1
+4d 63 c0	0	+0x066  movsxd r8, r8d
+49 ff c0	0	+0x069  inc r8
+4d 3b c2	0	+0x06c  cmp r8, r10
+4d 0f 4c d0	0	+0x06f  cmovl r10, r8
+41 8b ca	0	+0x073  mov ecx, r10d
+45 33 d2	0	+0x076  xor r10d, r10d
+45 33 c0	0	+0x079  xor r8d, r8d
+66 0f 28 c8	0	+0x07c  movapd xmm1, xmm0
+f2 42 0f 59 4c c6 10	0	+0x080  mulsd xmm1, qword ptr [rsi + 8*r8 + 0x10]
+f2 42 0f 58 4c c2 10	0	+0x087  addsd xmm1, qword ptr [rdx + 8*r8 + 0x10]
+f2 42 0f 11 4c c2 10	0	+0x08e  movsd qword ptr [rdx + 8*r8 + 0x10], xmm1
+41 8b d8	0	+0x095  mov ebx, r8d
+ff c3	0	+0x098  inc ebx
+3b d9	0	+0x09a  cmp ebx, ecx
+7d 05	0	+0x09c  jge 0x7fffe7fe5e23
+44 8b c3	0	+0x09e  mov r8d, ebx
+eb d9	0	+0x0a1  jmp 0x7fffe7fe5dfc
+45 8b cb	0	+0x0a3  mov r9d, r11d
+41 83 c1 f1	0	+0x0a6  add r9d, -0xf
+41 3b d9	0	+0x0aa  cmp ebx, r9d
+0f 8d b5 01 00 00	0	+0x0ad  jge 0x7fffe7fe5fe8
+f2 44 0f 12 d0	0	+0x0b3  movddup xmm10, xmm0
+41 ff c0	0	+0x0b8  inc r8d
+b9 80 3e 00 00	0	+0x0bb  mov ecx, 0x3e80
+41 8b fb	0	+0x0c0  mov edi, r11d
+41 2b f8	0	+0x0c3  sub edi, r8d
+83 c7 f1	0	+0x0c6  add edi, -0xf
+45 3b c8	0	+0x0c9  cmp r9d, r8d
+41 0f 4c fa	0	+0x0cc  cmovl edi, r10d
+81 ff 80 3e 00 00	0	+0x0d0  cmp edi, 0x3e80
+0f 47 f9	0	+0x0d6  cmova edi, ecx
+41 03 f8	0	+0x0d9  add edi, r8d
+0f 1f 40 00	0	+0x0dc  nop dword ptr [rax]
+42 0f 10 4c c6 30	0	+0x0e0  movups xmm1, xmmword ptr [rsi + 8*r8 + 0x30]
+42 0f 10 54 c2 30	0	+0x0e6  movups xmm2, xmmword ptr [rdx + 8*r8 + 0x30]
+42 0f 10 5c c6 40	1	+0x0ec  movups xmm3, xmmword ptr [rsi + 8*r8 + 0x40]
+42 0f 10 64 c6 20	0	+0x0f2  movups xmm4, xmmword ptr [rsi + 8*r8 + 0x20]
+42 0f 10 6c c2 40	0	+0x0f8  movups xmm5, xmmword ptr [rdx + 8*r8 + 0x40]
+42 0f 10 74 c2 10	0	+0x0fe  movups xmm6, xmmword ptr [rdx + 8*r8 + 0x10]
+42 0f 10 7c c2 20	0	+0x104  movups xmm7, xmmword ptr [rdx + 8*r8 + 0x20]
+46 0f 10 44 c6 10	6	+0x10a  movups xmm8, xmmword ptr [rsi + 8*r8 + 0x10]
+f3 45 0f 6f ca	0	+0x110  movdqu xmm9, xmm10
+66 44 0f 59 c9	0	+0x115  mulpd xmm9, xmm1
+f3 41 0f 6f ca	0	+0x11a  movdqu xmm1, xmm10
+66 41 0f 59 c8	0	+0x11f  mulpd xmm1, xmm8
+66 41 0f 58 d1	0	+0x124  addpd xmm2, xmm9
+66 0f 58 ce	0	+0x129  addpd xmm1, xmm6
+f3 41 0f 6f f2	5	+0x12d  movdqu xmm6, xmm10
+66 0f 59 f4	0	+0x132  mulpd xmm6, xmm4
+f3 41 0f 6f e2	0	+0x136  movdqu xmm4, xmm10
+66 0f 59 e3	0	+0x13b  mulpd xmm4, xmm3
+66 0f 58 f7	1	+0x13f  addpd xmm6, xmm7
+f3 42 0f 7f 74 c2 20	4	+0x143  movdqu xmmword ptr [rdx + 8*r8 + 0x20], xmm6
+f3 42 0f 7f 4c c2 10	1	+0x14a  movdqu xmmword ptr [rdx + 8*r8 + 0x10], xmm1
+66 0f 58 ec	0	+0x151  addpd xmm5, xmm4
+f3 42 0f 7f 6c c2 40	1	+0x155  movdqu xmmword ptr [rdx + 8*r8 + 0x40], xmm5
+f3 42 0f 7f 54 c2 30	2	+0x15c  movdqu xmmword ptr [rdx + 8*r8 + 0x30], xmm2
+42 0f 10 4c c2 60	7	+0x163  movups xmm1, xmmword ptr [rdx + 8*r8 + 0x60]
+42 0f 10 54 c6 70	2	+0x169  movups xmm2, xmmword ptr [rsi + 8*r8 + 0x70]
+42 0f 10 5c c2 70	3	+0x16f  movups xmm3, xmmword ptr [rdx + 8*r8 + 0x70]
+42 0f 10 64 c6 60	4	+0x175  movups xmm4, xmmword ptr [rsi + 8*r8 + 0x60]
+42 0f 10 ac c6 80 00 00 00	1	+0x17b  movups xmm5, xmmword ptr [rsi + 8*r8 + 0x80]
+42 0f 10 74 c2 50	5	+0x184  movups xmm6, xmmword ptr [rdx + 8*r8 + 0x50]
+42 0f 10 7c c6 50	2	+0x18a  movups xmm7, xmmword ptr [rsi + 8*r8 + 0x50]
+46 0f 10 84 c2 80 00 00 00	5	+0x190  movups xmm8, xmmword ptr [rdx + 8*r8 + 0x80]
+f3 45 0f 6f ca	0	+0x199  movdqu xmm9, xmm10
+66 44 0f 59 ca	0	+0x19e  mulpd xmm9, xmm2
+f3 41 0f 6f d2	0	+0x1a3  movdqu xmm2, xmm10
+66 0f 59 d7	0	+0x1a8  mulpd xmm2, xmm7
+66 41 0f 58 d9	1	+0x1ac  addpd xmm3, xmm9
+66 0f 58 f2	0	+0x1b1  addpd xmm6, xmm2
+f3 41 0f 6f d2	5	+0x1b5  movdqu xmm2, xmm10
+66 0f 59 d5	0	+0x1ba  mulpd xmm2, xmm5
+f3 41 0f 6f ea	0	+0x1be  movdqu xmm5, xmm10
+66 0f 59 ec	2	+0x1c3  mulpd xmm5, xmm4
+66 44 0f 58 c2	0	+0x1c7  addpd xmm8, xmm2
+66 0f 58 cd	0	+0x1cc  addpd xmm1, xmm5
+f3 42 0f 7f 4c c2 60	2	+0x1d0  movdqu xmmword ptr [rdx + 8*r8 + 0x60], xmm1
+f3 42 0f 7f 74 c2 50	4	+0x1d7  movdqu xmmword ptr [rdx + 8*r8 + 0x50], xmm6
+f3 46 0f 7f 84 c2 80 00 00 00	1	+0x1de  movdqu xmmword ptr [rdx + 8*r8 + 0x80], xmm8
+f3 42 0f 7f 5c c2 70	26	+0x1e8  movdqu xmmword ptr [rdx + 8*r8 + 0x70], xmm3
+41 83 c0 10	0	+0x1ef  add r8d, 0x10
+44 3b c7	0	+0x1f3  cmp r8d, edi
+0f 8c e4 fe ff ff	0	+0x1f6  jl 0x7fffe7fe5e60
+49 8b 5f 30	5	+0x1fc  mov rbx, qword ptr [r15 + 0x30]
+85 03	0	+0x200  test dword ptr [rbx], eax
+45 3b c1	0	+0x202  cmp r8d, r9d
+0f 8c b5 fe ff ff	0	+0x205  jl 0x7fffe7fe5e40
+45 3b c3	0	+0x20b  cmp r8d, r11d
+7d 21	0	+0x20e  jge 0x7fffe7fe5fb1
+66 0f 28 c8	0	+0x210  movapd xmm1, xmm0
+f2 42 0f 59 4c c6 10	0	+0x214  mulsd xmm1, qword ptr [rsi + 8*r8 + 0x10]
+f2 42 0f 58 4c c2 10	0	+0x21b  addsd xmm1, qword ptr [rdx + 8*r8 + 0x10]
+f2 42 0f 11 4c c2 10	1	+0x222  movsd qword ptr [rdx + 8*r8 + 0x10], xmm1
+41 ff c0	0	+0x229  inc r8d
+45 3b c3	0	+0x22c  cmp r8d, r11d
+7c df	0	+0x22f  jl 0x7fffe7fe5f90
+48 83 c4 30	0	+0x231  add rsp, 0x30
+5d	0	+0x235  pop rbp
+49 3b 67 28	0	+0x236  cmp rsp, qword ptr [r15 + 0x28]
+0f 87 40 00 00 00	0	+0x23a  ja 0x7fffe7fe6000
+c3	0	+0x240  ret
+66 48 0f 7e c5	0	+0x241  movq rbp, xmm0
+48 89 34 24	0	+0x246  mov qword ptr [rsp], rsi
+48 89 54 24 08	0	+0x24a  mov qword ptr [rsp + 0x8], rdx
+44 89 5c 24 10	0	+0x24f  mov dword ptr [rsp + 0x10], r11d
+be 6e ff ff ff	0	+0x254  mov esi, 0xffffff6e
+66 90	0	+0x259  nop
+e8 00 2a b1 ff	0	+0x25b  call 0x7fffe7af89e0
+0f 1f 84 00 58 03 00 01	0	+0x260  nop dword ptr [rax + rax + 0x1000358]
+44 8b c3	0	+0x268  mov r8d, ebx
+eb 9e	0	+0x26b  jmp 0x7fffe7fe5f8b
+be f6 ff ff ff	0	+0x26d  mov esi, 0xfffffff6
+90	0	+0x272  nop
+e8 e8 29 b1 ff	0	+0x273  call 0x7fffe7af89e0
+0f 1f 84 00 70 03 00 02	0	+0x278  nop dword ptr [rax + rax + 0x2000370]
+49 ba b6 5f fe e7 ff 7f 00 00	0	+0x280  movabs r10, 0x7fffe7fe5fb6
+4d 89 97 38 05 00 00	0	+0x28a  mov qword ptr [r15 + 0x538], r10
+e9 ca f3 a3 ff	0	+0x291  jmp 0x7fffe7a253e0
+e8 e5 4d a2 ff	0	+0x296  call 0x7fffe7a0ae00
+e9 7a fd ff ff	0	+0x29b  jmp 0x7fffe7fe5d9a
+e9 bb 2c b1 ff	0	+0x2a0  jmp 0x7fffe7af8ce0
+e8 00 00 00 00	0	+0x2a5  call 0x7fffe7fe602a
+48 83 2c 24 05	0	+0x2aa  sub qword ptr [rsp], 0x5
+e9 ac f6 a3 ff	0	+0x2af  jmp 0x7fffe7a256e0
+f4	0	+0x2b4  hlt
+f4	0	+0x2b5  hlt
+f4	0	+0x2b6  hlt
+f4	0	+0x2b7  hlt

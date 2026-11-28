@@ -11,9 +11,9 @@ import instructive.agent.Sampler;
 import instructive.analyse.MissedVectorisation;
 import instructive.analyse.MissedVectorisationRule;
 import instructive.parse.Instruction;
-import instructive.parse.InstructionKind;
-import instructive.parse.aarch64.Aarch64Disassembler;
-import instructive.parse.aarch64.Aarch64RegisterModel;
+import instructive.analyse.VectorisationModel;
+import instructive.parse.Disassembler;
+import instructive.parse.RegisterModel;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -32,9 +32,12 @@ class MissedVectorisationTest {
 
     private static final int LENGTH = 1 << 12;
 
+    static final String ARCHITECTURE = System.getProperty("os.arch");
+    static final boolean X86 = ARCHITECTURE.equals("amd64") || ARCHITECTURE.equals("x86_64");
+
     @BeforeAll
-    static void onlyOnAarch64() {
-        assumeTrue(System.getProperty("os.arch").equals("aarch64"), "the register model is for aarch64");
+    static void onlyOnASupportedArchitecture() {
+        assumeTrue(VectorisationModel.forArchitecture(ARCHITECTURE).isPresent(), "no model for " + ARCHITECTURE);
     }
 
     @AfterEach
@@ -48,7 +51,7 @@ class MissedVectorisationTest {
         List<MissedVectorisation> findings = apply(profile);
         String report = describe(profile, findings);
         assertTrue(findings.isEmpty(), report);
-        assertTrue(simd(instructions(profile)) > 0, report);
+        assertTrue(vector(instructions(profile)) > 0, report);
     }
 
     @Test
@@ -60,8 +63,12 @@ class MissedVectorisationTest {
         MissedVectorisation found = findings.get(0);
         assertTrue(found.lanes() >= 2, report);
         assertEquals(8, found.elementSize(), report);
-        assertEquals(List.of("fmul", "fadd"), found.operations().stream().map(Instruction::mnemonic).toList(), report);
-        assertEquals(0, simd(found.instructions()), report);
+        // a * x[i], then + y[i]: fmul and fadd on AArch64; mulsd and addsd on x86, vmulsd
+        // and vaddsd with AVX.
+        List<String> operations = found.operations().stream().map(Instruction::mnemonic).toList();
+        assertEquals(2, operations.size(), report);
+        assertTrue(operations.get(0).contains("mul") && operations.get(1).contains("add"), report);
+        assertEquals(0, vector(found.instructions()), report);
         assertTrue(found.samples() * 4 >= profile.sampled() * 3, report);
     }
 
@@ -71,7 +78,7 @@ class MissedVectorisationTest {
         List<MissedVectorisation> findings = apply(profile);
         String report = describe(profile, findings);
         assertTrue(findings.isEmpty(), report);
-        assertTrue(simd(instructions(profile)) > 0, report);
+        assertTrue(vector(instructions(profile)) > 0, report);
     }
 
     @Test
@@ -162,16 +169,20 @@ class MissedVectorisationTest {
         return hottest[0];
     }
 
-    static long simd(List<Instruction> instructions) {
-        return instructions.stream().filter(instruction -> instruction.kind() == InstructionKind.SIMD).count();
+    // The vector instructions among `instructions`, by the architecture's own reckoning.
+    static long vector(List<Instruction> instructions) {
+        VectorisationModel model = VectorisationModel.forArchitecture(ARCHITECTURE).orElseThrow();
+        return instructions.stream().filter(model::isVector).count();
     }
 
     static List<Instruction> instructions(InstructionProfile profile) {
-        return new Aarch64Disassembler().decodeAll(profile.machineCode().orElseThrow(), profile.address());
+        Disassembler disassembler = InstructionProfileFormatter.forArchitecture(ARCHITECTURE).orElseThrow();
+        return disassembler.decodeAll(profile.machineCode().orElseThrow(), profile.address());
     }
 
     static List<MissedVectorisation> apply(InstructionProfile profile) {
-        return new MissedVectorisationRule().apply(instructions(profile), new Aarch64RegisterModel(),
+        return new MissedVectorisationRule(VectorisationModel.forArchitecture(ARCHITECTURE).orElseThrow())
+                .apply(instructions(profile), RegisterModel.forArchitecture(ARCHITECTURE).orElseThrow(),
                 instruction -> profile.count((int) (instruction.address() - profile.address())));
     }
 

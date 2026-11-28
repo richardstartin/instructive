@@ -1,0 +1,132 @@
+# Arrays.hashCode([I)I, unrolled 8 times: every sample on an instruction both the recurrence and the straight-line chain into it share, so they tie on samples
+# C2 on JDK 21, Linux (Alpine) aarch64, a GitHub Actions arm64 runner, one second of samples. Columns: bytes, samples, offset and disassembly.
+1f 20 03 d5	0	+0x000  nop
+e9 53 40 d1	0	+0x004  sub x9, sp, #0x14, lsl #12
+3f 01 00 f9	0	+0x008  str xzr, [x9]
+ff c3 00 d1	0	+0x00c  sub sp, sp, #0x30
+fd 7b 02 a9	0	+0x010  stp x29, x30, [sp, #0x20]
+e8 0e 00 18	0	+0x014  ldr w8, 0xffe53a404770
+89 23 40 b9	0	+0x018  ldr w9, [x28, #0x20]
+1f 01 09 eb	0	+0x01c  cmp x8, x9
+e1 0d 00 54	0	+0x020  b.ne 0xffe53a40475c <+0x1dc>
+ea 03 01 aa	0	+0x024  mov x10, x1
+2f 0c 40 b9	0	+0x028  ldr w15, [x1, #0xc]
+eb 05 00 51	0	+0x02c  sub w11, w15, #0x1
+ff 09 00 71	0	+0x030  cmp w15, #0x2
+4b 0b 00 54	0	+0x034  b.lt 0xffe53a40471c <+0x19c>
+f0 03 00 32	0	+0x038  orr w16, wzr, #0x1
+ff 01 00 71	0	+0x03c  cmp w15, #0x0
+89 09 00 54	0	+0x040  b.ls 0xffe53a4046f0 <+0x170>
+7f 01 0f 6b	0	+0x044  cmp w11, w15
+82 09 00 54	0	+0x048  b.hs 0xffe53a4046f8 <+0x178>
+f1 1d 00 51	0	+0x04c  sub w17, w15, #0x7
+2b 10 40 b9	0	+0x050  ldr w11, [x1, #0x10]
+3f 06 00 71	0	+0x054  cmp w17, #0x1
+ed 09 00 54	0	+0x058  b.le 0xffe53a404714 <+0x194>
+6c 69 1b 53	0	+0x05c  lsl w12, w11, #5
+8c 01 0b 4b	0	+0x060  sub w12, w12, w11
+8b 05 0f 11	0	+0x064  add w11, w12, #0x3c1
+01 e8 83 52	0	+0x068  mov w1, #0x1f40
+ed 01 10 4b	0	+0x06c  sub w13, w15, w16
+3f 02 10 6b	0	+0x070  cmp w17, w16
+ac 1d 00 51	0	+0x074  sub w12, w13, #0x7
+ec b3 8c 1a	0	+0x078  csel w12, wzr, w12, lt
+08 e8 83 52	0	+0x07c  mov w8, #0x1f40
+9f 01 08 6b	0	+0x080  cmp w12, w8
+2c 80 8c 1a	0	+0x084  csel w12, w1, w12, hi
+82 01 10 0b	0	+0x088  add w2, w12, w16
+1f 20 03 d5	0	+0x08c  nop
+52 c9 30 8b	0	+0x090  add x18, x10, w16, sxtw #2
+4d 12 40 b9	1	+0x094  ldr w13, [x18, #0x10]
+6b 01 0d 0b	0	+0x098  add w11, w11, w13
+6c 69 1b 53	1	+0x09c  lsl w12, w11, #5
+4d 16 40 b9	0	+0x0a0  ldr w13, [x18, #0x14]
+8c 01 0b 4b	0	+0x0a4  sub w12, w12, w11
+8b 01 0d 0b	17	+0x0a8  add w11, w12, w13
+6e 69 1b 53	1	+0x0ac  lsl w14, w11, #5
+4c 1a 40 b9	0	+0x0b0  ldr w12, [x18, #0x18]
+cb 01 0b 4b	0	+0x0b4  sub w11, w14, w11
+6c 01 0c 0b	10	+0x0b8  add w12, w11, w12
+8e 69 1b 53	0	+0x0bc  lsl w14, w12, #5
+4d 1e 40 b9	0	+0x0c0  ldr w13, [x18, #0x1c]
+cb 01 0c 4b	0	+0x0c4  sub w11, w14, w12
+6b 01 0d 0b	14	+0x0c8  add w11, w11, w13
+6c 69 1b 53	0	+0x0cc  lsl w12, w11, #5
+4d 22 40 b9	0	+0x0d0  ldr w13, [x18, #0x20]
+8c 01 0b 4b	0	+0x0d4  sub w12, w12, w11
+8b 01 0d 0b	0	+0x0d8  add w11, w12, w13
+6e 69 1b 53	0	+0x0dc  lsl w14, w11, #5
+4c 26 40 b9	0	+0x0e0  ldr w12, [x18, #0x24]
+cb 01 0b 4b	0	+0x0e4  sub w11, w14, w11
+6c 01 0c 0b	26	+0x0e8  add w12, w11, w12
+8e 69 1b 53	0	+0x0ec  lsl w14, w12, #5
+4b 2a 40 b9	0	+0x0f0  ldr w11, [x18, #0x28]
+cc 01 0c 4b	0	+0x0f4  sub w12, w14, w12
+8c 01 0b 0b	8	+0x0f8  add w12, w12, w11
+8e 69 1b 53	0	+0x0fc  lsl w14, w12, #5
+4b 2e 40 b9	0	+0x100  ldr w11, [x18, #0x2c]
+cc 01 0c 4b	0	+0x104  sub w12, w14, w12
+80 01 0b 0b	3	+0x108  add w0, w12, w11
+0c 68 1b 53	0	+0x10c  lsl w12, w0, #5
+10 22 00 11	0	+0x110  add w16, w16, #0x8
+8b 01 00 4b	0	+0x114  sub w11, w12, w0
+1f 02 02 6b	0	+0x118  cmp w16, w2
+ab fb ff 54	0	+0x11c  b.lt 0xffe53a404610 <+0x90>
+8c 2f 42 f9	0	+0x120  ldr x12, [x28, #0x458]
+9f 01 40 b9	0	+0x124  ldr wzr, [x12]
+1f 02 11 6b	0	+0x128  cmp w16, w17
+0b fa ff 54	0	+0x12c  b.lt 0xffe53a4045ec <+0x6c>
+1f 02 0f 6b	0	+0x130  cmp w16, w15
+2a 01 00 54	0	+0x134  b.ge 0xffe53a4046d8 <+0x158>
+4b c9 30 8b	0	+0x138  add x11, x10, w16, sxtw #2
+0d 68 1b 53	0	+0x13c  lsl w13, w0, #5
+6b 11 40 b9	0	+0x140  ldr w11, [x11, #0x10]
+ac 01 00 4b	0	+0x144  sub w12, w13, w0
+10 06 00 11	0	+0x148  add w16, w16, #0x1
+80 01 0b 0b	0	+0x14c  add w0, w12, w11
+1f 02 0f 6b	0	+0x150  cmp w16, w15
+2b ff ff 54	0	+0x154  b.lt 0xffe53a4046b8 <+0x138>
+fd 7b 42 a9	0	+0x158  ldp x29, x30, [sp, #0x20]
+ff c3 00 91	0	+0x15c  add sp, sp, #0x30
+88 2b 42 f9	0	+0x160  ldr x8, [x28, #0x450]
+ff 63 28 eb	0	+0x164  cmp sp, x8
+48 03 00 54	0	+0x168  b.hi 0xffe53a404750 <+0x1d0>
+c0 03 5f d6	0	+0x16c  ret
+e0 03 00 32	0	+0x170  orr w0, wzr, #0x1
+f9 ff ff 17	0	+0x174  b 0xffe53a4046d8 <+0x158>
+21 11 80 12	0	+0x178  mov w1, #-0x8a
+fd 03 0a aa	0	+0x17c  mov x29, x10
+ef 07 00 b9	0	+0x180  str w15, [sp, #0x4]
+5f d6 e5 97	0	+0x184  bl 0xffe539d7a080
+1f 20 03 d5	0	+0x188  nop
+1f 5f 80 f2	0	+0x18c  movk xzr, #0x2f8
+1f 20 80 f2	0	+0x190  movk xzr, #0x100
+60 7d 00 11	0	+0x194  add w0, w11, #0x1f
+e6 ff ff 17	0	+0x198  b 0xffe53a4046b0 <+0x130>
+41 17 80 12	0	+0x19c  mov w1, #-0xbb
+fd 03 0a aa	0	+0x1a0  mov x29, x10
+ef 03 00 b9	0	+0x1a4  str w15, [sp]
+56 d6 e5 97	0	+0x1a8  bl 0xffe539d7a080
+1f 20 03 d5	0	+0x1ac  nop
+9f 63 80 f2	0	+0x1b0  movk xzr, #0x31c
+1f 40 80 f2	0	+0x1b4  movk xzr, #0x200
+41 17 80 12	0	+0x1b8  mov w1, #-0xbb
+ea 03 00 f9	0	+0x1bc  str x10, [sp]
+50 d6 e5 97	0	+0x1c0  bl 0xffe539d7a080
+1f 20 03 d5	0	+0x1c4  nop
+9f 66 80 f2	0	+0x1c8  movk xzr, #0x334
+1f 60 80 f2	0	+0x1cc  movk xzr, #0x300
+88 fc ff 10	0	+0x1d0  adr x8, 0xffe53a4046e0
+88 37 02 f9	0	+0x1d4  str x8, [x28, #0x468]
+6a d4 e5 17	0	+0x1d8  b 0xffe539d79900
+08 10 99 d2	0	+0x1dc  mov x8, #0xc880
+e8 3a a7 f2	0	+0x1e0  movk x8, #0x39d7, lsl #16
+a8 fc df f2	0	+0x1e4  movk x8, #0xffe5, lsl #32
+00 01 3f d6	0	+0x1e8  blr x8
+8e ff ff 17	0	+0x1ec  b 0xffe53a4045a4 <+0x24>
+01 00 00 00	0	+0x1f0  udf #0x1
+00 00 00 00	0	+0x1f4  udf #0x0
+22 43 e9 17	0	+0x1f8  b 0xffe539e55400
+1e 00 00 10	0	+0x1fc  adr x30, 0xffe53a40477c
+30 d5 e5 17	0	+0x200  b 0xffe539d79c40
+00 00 00 00	0	+0x204  udf #0x0

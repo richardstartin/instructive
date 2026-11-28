@@ -1,0 +1,231 @@
+# Vec.daxpySum(D[DI[DII)D: for (int i = 0; i < n; i++) s += a * x[xOffset + i] + y[yOffset + i], a floating-point reduction
+# C2 on JDK 25, Linux x86-64 (SSE4.2, Rosetta on an Apple M2), one second of samples. Columns: bytes, samples, offset and disassembly.
+89 84 24 00 c0 fe ff	0	+0x000  mov dword ptr [rsp - 0x14000], eax
+55	0	+0x007  push rbp
+48 83 ec 30	0	+0x008  sub rsp, 0x30
+41 81 7f 20 01 00 00 00	0	+0x00c  cmp dword ptr [r15 + 0x20], 0x1
+0f 85 60 03 00 00	0	+0x014  jne 0x7fffe8035c7a
+66 48 0f 6e de	0	+0x01a  movq xmm3, rsi
+66 0f 28 c8	0	+0x01f  movapd xmm1, xmm0
+66 0f 57 c0	0	+0x023  xorpd xmm0, xmm0
+45 85 c9	0	+0x027  test r9d, r9d
+0f 8e e6 02 00 00	0	+0x02a  jle 0x7fffe8035c16
+44 8b 56 0c	0	+0x030  mov r10d, dword ptr [rsi + 0xc]
+41 3b d2	0	+0x034  cmp edx, r10d
+0f 83 ee 02 00 00	0	+0x037  jae 0x7fffe8035c2b
+4d 63 d2	0	+0x03d  movsxd r10, r10d
+49 63 e9	0	+0x040  movsxd rbp, r9d
+48 63 da	0	+0x043  movsxd rbx, edx
+4c 8b dd	0	+0x046  mov r11, rbp
+4c 03 db	0	+0x049  add r11, rbx
+49 ff cb	0	+0x04c  dec r11
+4d 3b da	0	+0x04f  cmp r11, r10
+0f 83 d3 02 00 00	0	+0x052  jae 0x7fffe8035c2b
+44 8b 51 0c	0	+0x058  mov r10d, dword ptr [rcx + 0xc]
+45 3b c2	0	+0x05c  cmp r8d, r10d
+0f 83 c6 02 00 00	0	+0x05f  jae 0x7fffe8035c2b
+49 63 f0	0	+0x065  movsxd rsi, r8d
+4c 8b dd	0	+0x068  mov r11, rbp
+4c 03 de	0	+0x06b  add r11, rsi
+4d 63 d2	0	+0x06e  movsxd r10, r10d
+49 ff cb	0	+0x071  dec r11
+4d 3b da	0	+0x074  cmp r11, r10
+0f 83 ae 02 00 00	0	+0x077  jae 0x7fffe8035c2b
+45 8b d0	0	+0x07d  mov r10d, r8d
+41 c1 e2 03	0	+0x080  shl r10d, 0x3
+8b f9	0	+0x084  mov edi, ecx
+41 bb e0 ff ff ff	0	+0x086  mov r11d, 0xffffffe0
+45 2b da	0	+0x08c  sub r11d, r10d
+44 2b df	0	+0x08f  sub r11d, edi
+41 c1 eb 03	0	+0x092  shr r11d, 0x3
+41 ff cb	0	+0x096  dec r11d
+41 83 e3 01	0	+0x099  and r11d, 0x1
+4d 63 d3	0	+0x09d  movsxd r10, r11d
+49 ff c2	0	+0x0a0  inc r10
+4c 3b d5	0	+0x0a3  cmp r10, rbp
+4c 8b dd	0	+0x0a6  mov r11, rbp
+4d 0f 4c da	0	+0x0a9  cmovl r11, r10
+45 8b db	0	+0x0ad  mov r11d, r11d
+33 c0	0	+0x0b0  xor eax, eax
+45 33 d2	0	+0x0b2  xor r10d, r10d
+4d 63 ea	0	+0x0b5  movsxd r13, r10d
+48 8b fb	0	+0x0b8  mov rdi, rbx
+49 03 fd	0	+0x0bb  add rdi, r13
+66 0f 28 d1	0	+0x0be  movapd xmm2, xmm1
+66 49 0f 7e de	0	+0x0c2  movq r14, xmm3
+f2 41 0f 59 54 fe 10	0	+0x0c7  mulsd xmm2, qword ptr [r14 + 8*rdi + 0x10]
+48 8b fe	0	+0x0ce  mov rdi, rsi
+49 03 fd	0	+0x0d1  add rdi, r13
+f2 0f 10 64 f9 10	0	+0x0d4  movsd xmm4, qword ptr [rcx + 8*rdi + 0x10]
+f2 0f 58 d4	0	+0x0da  addsd xmm2, xmm4
+f2 0f 58 c2	0	+0x0de  addsd xmm0, xmm2
+41 8b fa	0	+0x0e2  mov edi, r10d
+ff c7	0	+0x0e5  inc edi
+41 3b fb	0	+0x0e7  cmp edi, r11d
+7d 05	0	+0x0ea  jge 0x7fffe80359f1
+44 8b d7	0	+0x0ec  mov r10d, edi
+eb c4	0	+0x0ef  jmp 0x7fffe80359b5
+4c 8b dd	0	+0x0f1  mov r11, rbp
+49 83 c3 f9	0	+0x0f4  add r11, -0x7
+49 81 fb 00 00 00 80	0	+0x0f8  cmp r11, -0x80000000
+49 c7 c5 00 00 00 80	0	+0x0ff  mov r13, -0x80000000
+4d 0f 4c dd	0	+0x106  cmovl r11, r13
+45 8b db	0	+0x10a  mov r11d, r11d
+41 3b fb	0	+0x10d  cmp edi, r11d
+0f 8d 46 02 00 00	0	+0x110  jge 0x7fffe8035c5c
+f2 44 0f 12 c9	0	+0x116  movddup xmm9, xmm1
+41 ff c2	0	+0x11b  inc r10d
+bf 40 1f 00 00	0	+0x11e  mov edi, 0x1f40
+66 41 0f 6e d1	0	+0x123  movd xmm2, r9d
+e9 f8 00 00 00	0	+0x128  jmp 0x7fffe8035b25
+66 66 90	0	+0x12d  nop
+44 8b d2	0	+0x130  mov r10d, edx
+66 0f 7e e2	0	+0x133  movd edx, xmm4
+66 0f 6e e2	0	+0x137  movd xmm4, edx
+41 03 d2	0	+0x13b  add edx, r10d
+48 63 d2	0	+0x13e  movsxd rdx, edx
+66 49 0f 7e dd	0	+0x141  movq r13, xmm3
+41 0f 10 6c d5 30	0	+0x146  movups xmm5, xmmword ptr [r13 + 8*rdx + 0x30]
+41 0f 10 74 d5 40	3	+0x14c  movups xmm6, xmmword ptr [r13 + 8*rdx + 0x40]
+f3 41 0f 6f f9	0	+0x152  movdqu xmm7, xmm9
+66 0f 59 fd	0	+0x157  mulpd xmm7, xmm5
+f3 41 0f 6f e9	0	+0x15b  movdqu xmm5, xmm9
+66 0f 59 ee	0	+0x160  mulpd xmm5, xmm6
+41 8b d0	0	+0x164  mov edx, r8d
+41 03 d2	0	+0x167  add edx, r10d
+48 63 d2	4	+0x16a  movsxd rdx, edx
+44 0f 10 54 d1 30	5	+0x16d  movups xmm10, xmmword ptr [rcx + 8*rdx + 0x30]
+44 0f 10 5c d1 40	16	+0x173  movups xmm11, xmmword ptr [rcx + 8*rdx + 0x40]
+66 44 0f 58 d7	0	+0x179  addpd xmm10, xmm7
+66 44 0f 58 dd	0	+0x17e  addpd xmm11, xmm5
+49 63 d2	0	+0x183  movsxd rdx, r10d
+4c 8b f3	1	+0x186  mov r14, rbx
+4c 03 f2	0	+0x189  add r14, rdx
+43 0f 10 6c f5 20	8	+0x18c  movups xmm5, xmmword ptr [r13 + 8*r14 + 0x20]
+43 0f 10 74 f5 10	14	+0x192  movups xmm6, xmmword ptr [r13 + 8*r14 + 0x10]
+4c 8b ee	3	+0x198  mov r13, rsi
+4c 03 ea	0	+0x19b  add r13, rdx
+46 0f 10 64 e9 20	9	+0x19e  movups xmm12, xmmword ptr [rcx + 8*r13 + 0x20]
+42 0f 10 7c e9 10	9	+0x1a4  movups xmm7, xmmword ptr [rcx + 8*r13 + 0x10]
+f3 45 0f 6f c1	0	+0x1aa  movdqu xmm8, xmm9
+66 44 0f 59 c6	0	+0x1af  mulpd xmm8, xmm6
+f3 41 0f 6f f1	0	+0x1b4  movdqu xmm6, xmm9
+66 0f 59 f5	0	+0x1b9  mulpd xmm6, xmm5
+66 44 0f 58 c7	0	+0x1bd  addpd xmm8, xmm7
+66 44 0f 58 e6	0	+0x1c2  addpd xmm12, xmm6
+f2 41 0f 58 c0	3	+0x1c7  addsd xmm0, xmm8
+66 41 0f 70 e8 0e	0	+0x1cc  pshufd xmm5, xmm8, 0xe
+f2 0f 58 c5	0	+0x1d2  addsd xmm0, xmm5
+f2 41 0f 58 c4	1	+0x1d6  addsd xmm0, xmm12
+66 41 0f 70 f4 0e	1	+0x1db  pshufd xmm6, xmm12, 0xe
+f2 0f 58 c6	1	+0x1e1  addsd xmm0, xmm6
+f2 41 0f 58 c2	1	+0x1e5  addsd xmm0, xmm10
+66 41 0f 70 f2 0e	1	+0x1ea  pshufd xmm6, xmm10, 0xe
+f2 0f 58 c6	0	+0x1f0  addsd xmm0, xmm6
+f2 41 0f 58 c3	1	+0x1f4  addsd xmm0, xmm11
+66 41 0f 70 eb 0e	1	+0x1f9  pshufd xmm5, xmm11, 0xe
+f2 0f 58 c5	4	+0x1ff  addsd xmm0, xmm5
+41 8b d2	8	+0x203  mov edx, r10d
+83 c2 08	0	+0x206  add edx, 0x8
+41 3b d1	3	+0x209  cmp edx, r9d
+0f 8c 1e ff ff ff	0	+0x20c  jl 0x7fffe8035a30
+4d 8b 4f 30	0	+0x212  mov r9, qword ptr [r15 + 0x30]
+41 85 01	0	+0x216  test dword ptr [r9], eax
+41 3b d3	0	+0x219  cmp edx, r11d
+7d 27	0	+0x21c  jge 0x7fffe8035b45
+44 8b d2	0	+0x21e  mov r10d, edx
+66 0f 7e e2	0	+0x221  movd edx, xmm4
+45 8b cb	0	+0x225  mov r9d, r11d
+45 2b ca	0	+0x228  sub r9d, r10d
+45 3b da	0	+0x22b  cmp r11d, r10d
+44 0f 4c c8	0	+0x22e  cmovl r9d, eax
+41 81 f9 40 1f 00 00	0	+0x232  cmp r9d, 0x1f40
+44 0f 47 cf	0	+0x239  cmova r9d, edi
+45 03 ca	0	+0x23d  add r9d, r10d
+e9 f2 fe ff ff	0	+0x240  jmp 0x7fffe8035a37
+48 83 c5 fd	0	+0x245  add rbp, -0x3
+48 81 fd 00 00 00 80	0	+0x249  cmp rbp, -0x80000000
+49 c7 c3 00 00 00 80	0	+0x250  mov r11, -0x80000000
+49 0f 4c eb	0	+0x257  cmovl rbp, r11
+44 8b c5	0	+0x25b  mov r8d, ebp
+41 3b d0	0	+0x25e  cmp edx, r8d
+0f 8d bf 00 00 00	0	+0x261  jge 0x7fffe8035c26
+41 83 c2 08	0	+0x267  add r10d, 0x8
+4d 63 da	0	+0x26b  movsxd r11, r10d
+4c 8b cb	0	+0x26e  mov r9, rbx
+4d 03 cb	0	+0x271  add r9, r11
+66 48 0f 7e df	0	+0x274  movq rdi, xmm3
+42 0f 10 64 cf 20	0	+0x279  movups xmm4, xmmword ptr [rdi + 8*r9 + 0x20]
+42 0f 10 6c cf 10	0	+0x27f  movups xmm5, xmmword ptr [rdi + 8*r9 + 0x10]
+4c 8b ce	0	+0x285  mov r9, rsi
+4d 03 cb	0	+0x288  add r9, r11
+42 0f 10 74 c9 20	0	+0x28b  movups xmm6, xmmword ptr [rcx + 8*r9 + 0x20]
+42 0f 10 7c c9 10	0	+0x291  movups xmm7, xmmword ptr [rcx + 8*r9 + 0x10]
+f3 45 0f 6f c1	0	+0x297  movdqu xmm8, xmm9
+66 44 0f 59 c5	0	+0x29c  mulpd xmm8, xmm5
+f3 41 0f 6f e9	0	+0x2a1  movdqu xmm5, xmm9
+66 0f 59 ec	0	+0x2a6  mulpd xmm5, xmm4
+66 44 0f 58 c7	0	+0x2aa  addpd xmm8, xmm7
+66 0f 58 f5	0	+0x2af  addpd xmm6, xmm5
+f2 41 0f 58 c0	0	+0x2b3  addsd xmm0, xmm8
+66 41 0f 70 e8 0e	0	+0x2b8  pshufd xmm5, xmm8, 0xe
+f2 0f 58 c5	0	+0x2be  addsd xmm0, xmm5
+f2 0f 58 c6	0	+0x2c2  addsd xmm0, xmm6
+66 0f 70 e6 0e	0	+0x2c6  pshufd xmm4, xmm6, 0xe
+f2 0f 58 c4	0	+0x2cb  addsd xmm0, xmm4
+41 83 c2 04	0	+0x2cf  add r10d, 0x4
+45 3b d0	0	+0x2d3  cmp r10d, r8d
+7c 93	0	+0x2d6  jl 0x7fffe8035b6b
+66 41 0f 7e d1	0	+0x2d8  movd r9d, xmm2
+45 3b d1	0	+0x2dd  cmp r10d, r9d
+7d 34	0	+0x2e0  jge 0x7fffe8035c16
+66 90	0	+0x2e2  nop
+4d 63 da	0	+0x2e4  movsxd r11, r10d
+4c 8b c3	0	+0x2e7  mov r8, rbx
+4d 03 c3	0	+0x2ea  add r8, r11
+66 0f 28 d1	0	+0x2ed  movapd xmm2, xmm1
+66 48 0f 7e df	0	+0x2f1  movq rdi, xmm3
+f2 42 0f 59 54 c7 10	0	+0x2f6  mulsd xmm2, qword ptr [rdi + 8*r8 + 0x10]
+4c 8b c6	0	+0x2fd  mov r8, rsi
+4d 03 c3	0	+0x300  add r8, r11
+f2 42 0f 58 54 c1 10	0	+0x303  addsd xmm2, qword ptr [rcx + 8*r8 + 0x10]
+f2 0f 58 c2	0	+0x30a  addsd xmm0, xmm2
+41 ff c2	0	+0x30e  inc r10d
+45 3b d1	0	+0x311  cmp r10d, r9d
+7c ce	0	+0x314  jl 0x7fffe8035be4
+48 83 c4 30	0	+0x316  add rsp, 0x30
+5d	0	+0x31a  pop rbp
+49 3b 67 28	0	+0x31b  cmp rsp, qword ptr [r15 + 0x28]
+0f 87 3f 00 00 00	0	+0x31f  ja 0x7fffe8035c64
+c3	0	+0x325  ret
+44 8b d2	0	+0x326  mov r10d, edx
+eb ad	0	+0x329  jmp 0x7fffe8035bd8
+be 6e ff ff ff	0	+0x32b  mov esi, 0xffffff6e
+66 48 0f 7e cd	0	+0x330  movq rbp, xmm1
+f2 0f 11 1c 24	0	+0x335  movsd qword ptr [rsp], xmm3
+89 54 24 08	0	+0x33a  mov dword ptr [rsp + 0x8], edx
+48 89 4c 24 10	0	+0x33e  mov qword ptr [rsp + 0x10], rcx
+44 89 44 24 0c	0	+0x343  mov dword ptr [rsp + 0xc], r8d
+44 89 4c 24 1c	0	+0x348  mov dword ptr [rsp + 0x1c], r9d
+66 90	0	+0x34d  nop
+e8 8c 2d ac ff	0	+0x34f  call 0x7fffe7af89e0
+0f 1f 84 00 4c 04 00 01	0	+0x354  nop dword ptr [rax + rax + 0x100044c]
+44 8b d7	0	+0x35c  mov r10d, edi
+e9 79 ff ff ff	0	+0x35f  jmp 0x7fffe8035bdd
+49 ba 1b 5c 03 e8 ff 7f 00 00	0	+0x364  movabs r10, 0x7fffe8035c1b
+4d 89 97 38 05 00 00	0	+0x36e  mov qword ptr [r15 + 0x538], r10
+e9 66 f7 9e ff	0	+0x375  jmp 0x7fffe7a253e0
+e8 81 51 9d ff	0	+0x37a  call 0x7fffe7a0ae00
+e9 96 fc ff ff	0	+0x37f  jmp 0x7fffe803591a
+f4	0	+0x384  hlt
+f4	0	+0x385  hlt
+f4	0	+0x386  hlt
+f4	0	+0x387  hlt
+e9 53 30 ac ff	0	+0x388  jmp 0x7fffe7af8ce0
+e8 00 00 00 00	0	+0x38d  call 0x7fffe8035c92
+48 83 2c 24 05	0	+0x392  sub qword ptr [rsp], 0x5
+e9 44 fa 9e ff	0	+0x397  jmp 0x7fffe7a256e0
+f4	0	+0x39c  hlt
+f4	0	+0x39d  hlt
+f4	0	+0x39e  hlt
+f4	0	+0x39f  hlt

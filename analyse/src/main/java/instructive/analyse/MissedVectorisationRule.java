@@ -1,9 +1,17 @@
 package instructive.analyse;
 
+import instructive.analyse.VectorisationModel.Compute;
+import instructive.analyse.VectorisationModel.Constant;
+import instructive.analyse.VectorisationModel.Load;
+import instructive.analyse.VectorisationModel.Memory;
+import instructive.analyse.VectorisationModel.Move;
+import instructive.analyse.VectorisationModel.Operand;
+import instructive.analyse.VectorisationModel.Operation;
+import instructive.analyse.VectorisationModel.Register;
+import instructive.analyse.VectorisationModel.Store;
+import instructive.analyse.VectorisationModel.Update;
 import instructive.parse.Instruction;
-import instructive.parse.InstructionKind;
 import instructive.parse.RegisterModel;
-import instructive.parse.RegisterUsage;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
@@ -11,11 +19,11 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.ToLongFunction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Flags hot loops that C2 unrolled but didn't vectorise: the unrolled copies do the
@@ -28,7 +36,9 @@ import java.util.regex.Pattern;
  * each plain store in an innermost loop, it builds the expression the stored value is
  * computed by within the iteration: operations with vector equivalents (floating-point
  * arithmetic and conversions; integer add, subtract, logic, shifts and extensions, and
- * 32-bit multiplies), down to loads and to values defined outside the loop. Stores whose
+ * multiplies the architecture has vector forms of), down to loads (on x86, also the
+ * memory operands folded into the operations) and to values defined outside the loop.
+ * The {@link VectorisationModel} says which instructions are which. Stores whose
  * expressions are identical, operation by operation, immediates included, are copies
  * when:
  * <ul>
@@ -40,11 +50,11 @@ import java.util.regex.Pattern;
  * </ul>
  * A store whose expression reaches anything else (a value carried round the loop, a
  * value with more than one definition, an instruction without a vector equivalent such
- * as a 64-bit multiply or a division by an integer) has no copies. Loops containing SIMD
- * instructions are already vectorised and are left out, as are loops with less than
- * {@code minimumShare} of the method's samples (without samples, every loop is
+ * as a 64-bit multiply or a division by an integer) has no copies. Loops containing
+ * vector instructions are already vectorised and are left out, as are loops with less
+ * than {@code minimumShare} of the method's samples (without samples, every loop is
  * considered), which also leaves out the scalar pre- and post-loops around a vectorised
- * loop. Operand matching is AArch64 text.
+ * loop.
  *
  * <p>Reductions, which carry the result round the loop instead of storing it, aren't
  * covered: C2 can't vectorise a floating-point sum without changing its rounding.
@@ -56,35 +66,18 @@ public final class MissedVectorisationRule {
     /** The default share of the method's samples a loop needs before it is reported. */
     public static final double DEFAULT_MINIMUM_SHARE = 0.1;
 
-    // Scalar operations with a vector equivalent, on any register width.
-    private static final Set<String> VECTORISABLE = Set.of(
-            "fadd", "fsub", "fmul", "fdiv", "fmadd", "fmsub", "fnmadd", "fnmsub", "fnmul", "fneg", "fabs",
-            "fsqrt", "fmax", "fmin", "fmaxnm", "fminnm", "fcvt", "scvtf", "ucvtf", "fcvtzs", "fcvtzu",
-            "frintn", "frintm", "frintp", "frintz", "frinta", "frinti", "frintx",
-            "add", "sub", "neg", "and", "orr", "eor", "bic", "orn", "mvn", "lsl", "lsr", "asr",
-            "sxtb", "sxth", "sxtw", "uxtb", "uxth");
-    // Multiplies, which Advanced SIMD has for 32-bit lanes and narrower but not 64-bit ones.
-    private static final Set<String> NARROW_ONLY = Set.of("mul", "madd", "msub", "mneg");
-    private static final Set<String> MOVES = Set.of("mov", "fmov");
-    private static final Set<String> LOADS = Set.of(
-            "ldr", "ldur", "ldrb", "ldurb", "ldrh", "ldurh", "ldrsb", "ldursb", "ldrsh", "ldursh", "ldrsw", "ldursw");
-    private static final Set<String> STORES = Set.of("str", "stur", "strb", "sturb", "strh", "sturh");
-
-    // A register operand: a general purpose register by width, or a floating-point one.
-    private static final Pattern REGISTER = Pattern.compile("\\b(?:[wxbhsdq]\\d+|[wx]zr|sp)\\b");
-    // A memory operand with an immediate offset, or none: "[x11, #0x28]", "[x11]".
-    private static final Pattern ADDRESS = Pattern.compile("\\[([wx]\\d+), #(-?0x[0-9a-f]+|-?\\d+)\\]$|\\[([wx]\\d+)\\]$");
-
+    private final VectorisationModel model;
     private final double minimumShare;
 
-    public MissedVectorisationRule() {
-        this(DEFAULT_MINIMUM_SHARE);
+    public MissedVectorisationRule(VectorisationModel model) {
+        this(model, DEFAULT_MINIMUM_SHARE);
     }
 
-    public MissedVectorisationRule(double minimumShare) {
+    public MissedVectorisationRule(VectorisationModel model, double minimumShare) {
         if (!(minimumShare >= 0 && minimumShare <= 1)) {
             throw new IllegalArgumentException("minimum share not in [0, 1]: " + minimumShare);
         }
+        this.model = Objects.requireNonNull(model);
         this.minimumShare = minimumShare;
     }
 
@@ -126,7 +119,7 @@ public final class MissedVectorisationRule {
             boolean vectorised = false;
             for (int i : body) {
                 samples += sampleCount.applyAsLong(code.get(i));
-                vectorised |= code.get(i).kind() == InstructionKind.SIMD;
+                vectorised |= model.isVector(code.get(i));
             }
             if (vectorised || (total > 0 && samples < minimumShare * total)) {
                 continue;
@@ -155,7 +148,7 @@ public final class MissedVectorisationRule {
                 }
                 List<Instruction> operations = copies.get(0).operations.stream().sorted().map(code::get).toList();
                 findings.add(new MissedVectorisation(header, instructionsInLoop, samples, copyInstructions, operations,
-                        NotUnrolledLoopRule.elementSize(code.get(copies.get(0).store))));
+                        copies.get(0).stored.size()));
             }
         }
         findings.sort(Comparator.comparingLong(MissedVectorisation::samples).reversed()
@@ -167,41 +160,47 @@ public final class MissedVectorisationRule {
     /**
      * A store and the expression computing the value it stores within one iteration.
      *
+     * @param stored     the element stored
      * @param shape      the expression as text, with registers replaced by what computes
      *                   them, so copies have the same shape
      * @param nodes      the store, its loads and operations, and the moves between them
-     * @param loads      the loads, in the order they appear in {@code shape}
+     * @param loads      the elements loaded, in the order they appear in {@code shape}
      * @param operations the operations
      */
-    private record Expression(int store, String shape, Set<Integer> nodes, List<Integer> loads, Set<Integer> operations) {}
+    private record Expression(
+            int store, Memory stored, String shape, Set<Integer> nodes, List<Memory> loads, Set<Integer> operations) {}
 
     // The expression stored by instruction `i`, or null if it isn't a plain store of a
     // value computed in the loop from loads by vectorisable operations.
-    private static Expression expression(DependencyGraph graph, RegisterModel registers, Set<Integer> body, int i) {
-        Instruction store = graph.instruction(i);
-        if (!STORES.contains(store.mnemonic()) || offset(store) == null) {
-            return null;
-        }
-        Set<String> stored = registers.usage(store).stored();
-        if (stored.size() != 1) {
-            return null;
-        }
+    private Expression expression(DependencyGraph graph, RegisterModel registers, Set<Integer> body, int i) {
+        Optional<Operation> operation = model.describe(graph.instruction(i));
         Builder builder = new Builder(graph, registers, body);
         builder.nodes.add(i);
-        String value = builder.shape(i, stored.iterator().next());
+        Memory to;
+        String value;
+        if (operation.isPresent() && operation.get() instanceof Store store) {
+            to = store.to();
+            value = builder.shape(i, store.register());
+        } else if (operation.isPresent() && operation.get() instanceof Update update) {
+            // The store's value is the operation's, on the element it replaces among others.
+            to = update.to();
+            value = builder.compute(i, update.value());
+        } else {
+            return null;
+        }
         if (builder.failed || builder.loads.isEmpty()) {
             return null;
         }
-        String shape = store.mnemonic() + " " + width(store.operands()) + " (" + value + ")";
-        return new Expression(i, shape, builder.nodes, builder.loads, builder.operations);
+        String shape = to.shape() + " (" + value + ")";
+        return new Expression(i, to, shape, builder.nodes, builder.loads, builder.operations);
     }
 
-    private static final class Builder {
+    private final class Builder {
         final DependencyGraph graph;
         final RegisterModel registers;
         final Set<Integer> body;
         final Set<Integer> nodes = new HashSet<>();
-        final List<Integer> loads = new ArrayList<>();
+        final List<Memory> loads = new ArrayList<>();
         final Set<Integer> operations = new HashSet<>();
         boolean failed;
 
@@ -217,51 +216,46 @@ public final class MissedVectorisationRule {
             if (writer == -1) {
                 return "invariant " + register;
             }
-            if (writer < 0) {
+            Optional<Operation> described = writer < 0 ? Optional.empty() : model.describe(graph.instruction(writer));
+            if (described.isEmpty()) {
                 failed = true;
                 return "?";
             }
             nodes.add(writer);
-            Instruction instruction = graph.instruction(writer);
-            String mnemonic = instruction.mnemonic();
-            if (instruction.kind() == InstructionKind.LOAD) {
-                if (!LOADS.contains(mnemonic) || offset(instruction) == null) {
-                    failed = true;
-                    return "?";
-                }
-                loads.add(writer);
-                return mnemonic + " " + width(instruction.operands());
+            Operation operation = described.get();
+            if (operation instanceof Load load) {
+                loads.add(load.from());
+                return load.from().shape();
             }
-            List<String> operands = registerOperands(instruction.operands());
-            if (MOVES.contains(mnemonic) && operands.size() == 2 && !operands.get(1).endsWith("zr")) {
-                return shape(writer, canonical(operands.get(1)));
+            if (operation instanceof Move move) {
+                return shape(writer, move.source());
             }
-            boolean vectorisable = VECTORISABLE.contains(mnemonic)
-                    || (NARROW_ONLY.contains(mnemonic) && instruction.operands().startsWith("w"));
-            if (!vectorisable || operands.isEmpty()) {
-                failed = true;
-                return "?";
+            if (operation instanceof Compute compute) {
+                return compute(writer, compute);
             }
-            operations.add(writer);
-            // The text with the destination replaced by its width and every source by its shape.
-            StringBuilder shape = new StringBuilder(mnemonic).append(' ');
-            Matcher matcher = REGISTER.matcher(instruction.operands());
-            boolean destination = true;
-            while (matcher.find()) {
-                String token = matcher.group();
-                String replacement;
-                if (destination) {
-                    replacement = token.substring(0, 1);
-                    destination = false;
-                } else if (token.endsWith("zr")) {
-                    replacement = token;
-                } else {
-                    replacement = "(" + shape(writer, canonical(token)) + ")";
-                }
-                matcher.appendReplacement(shape, Matcher.quoteReplacement(replacement));
+            failed = true;
+            return "?";
+        }
+
+        // The shape of the value instruction `i` computes with `compute`.
+        String compute(int i, Compute compute) {
+            operations.add(i);
+            StringBuilder shape = new StringBuilder(compute.shape()).append(" (");
+            for (int source = 0; source < compute.sources().size(); source++) {
+                shape.append(source == 0 ? "" : ", ").append(shape(i, compute.sources().get(source)));
             }
-            matcher.appendTail(shape);
-            return shape.toString();
+            return shape.append(')').toString();
+        }
+
+        private String shape(int user, Operand operand) {
+            if (operand instanceof Register source) {
+                return "(" + shape(user, source.name()) + ")";
+            }
+            if (operand instanceof Memory memory) {
+                loads.add(memory);
+                return memory.shape();
+            }
+            return ((Constant) operand).shape();
         }
 
         // The one instruction in the loop that `register`'s value at `user` comes from
@@ -293,15 +287,14 @@ public final class MissedVectorisationRule {
             return List.of();
         }
         List<Expression> sorted = new ArrayList<>(candidates);
-        sorted.sort(Comparator.comparingLong(expression -> offset(graph.instruction(expression.store))));
+        sorted.sort(Comparator.comparingLong(expression -> expression.stored.displacement()));
         // Adjacent elements: each access steps by its element's size from the copy before.
         for (int k = 1; k < sorted.size(); k++) {
-            if (!adjacent(graph.instruction(sorted.get(k - 1).store), graph.instruction(sorted.get(k).store))) {
+            if (!adjacent(sorted.get(k - 1).stored, sorted.get(k).stored)) {
                 return List.of();
             }
             for (int load = 0; load < sorted.get(k).loads.size(); load++) {
-                if (!adjacent(graph.instruction(sorted.get(k - 1).loads.get(load)),
-                        graph.instruction(sorted.get(k).loads.get(load)))) {
+                if (!adjacent(sorted.get(k - 1).loads.get(load), sorted.get(k).loads.get(load))) {
                     return List.of();
                 }
             }
@@ -330,44 +323,8 @@ public final class MissedVectorisationRule {
         return sorted;
     }
 
-    // Whether `next` accesses the element after the one `previous` does, judging by their
-    // immediate offsets.
-    private static boolean adjacent(Instruction previous, Instruction next) {
-        int size = NotUnrolledLoopRule.elementSize(next);
-        return size > 0 && size == NotUnrolledLoopRule.elementSize(previous)
-                && offset(next) - offset(previous) == size;
-    }
-
-    // The immediate offset of a load or store addressed by a register and an immediate,
-    // or null if it is addressed any other way.
-    private static Long offset(Instruction instruction) {
-        Matcher address = ADDRESS.matcher(instruction.operands());
-        if (!address.find()) {
-            return null;
-        }
-        return address.group(2) == null ? 0 : Long.decode(address.group(2));
-    }
-
-    private static List<String> registerOperands(String operands) {
-        List<String> found = new ArrayList<>();
-        Matcher matcher = REGISTER.matcher(operands);
-        while (matcher.find()) {
-            found.add(matcher.group());
-        }
-        return found;
-    }
-
-    // The width letter of an instruction's first register operand: "d" for "d16, ...".
-    private static String width(String operands) {
-        return operands.isEmpty() ? "" : operands.substring(0, 1);
-    }
-
-    // The canonical name of a register, as RegisterUsage gives it.
-    private static String canonical(String register) {
-        return switch (register.charAt(0)) {
-            case 'w', 'x' -> "x" + register.substring(1);
-            case 'b', 'h', 's', 'd', 'q' -> "v" + register.substring(1);
-            default -> register;
-        };
+    // Whether `next` is the element after `previous`, judging by their displacements.
+    private static boolean adjacent(Memory previous, Memory next) {
+        return next.size() == previous.size() && next.displacement() - previous.displacement() == next.size();
     }
 }
