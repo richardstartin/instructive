@@ -443,7 +443,9 @@ chain.samples();          // 72
 
 The analysis tracks registers only. Condition flags are left out, so a compare followed
 by a branch isn't counted as a data dependency, and so are memory dependencies through
-stores and loads. Register usage is modelled for AArch64 so far.
+stores and loads. Register usage is modelled for AArch64 (`Aarch64RegisterModel`) and
+x86-64 (`X86RegisterModel`). `MissedVectorisationRule` works on both; the other rules
+match AArch64 instructions and are tested on AArch64 only.
 
 ## Finding loops that aren't unrolled
 
@@ -1439,16 +1441,57 @@ with `xOffset = yOffset - 1`, copy 2's load of `x` would read the element copy 1
 stored, making the loop `y[j] += a * y[j - 1]`, a recurrence. That is the dependence C2
 can't rule out.
 
+### On x86
+
+The same method on x86-64, JDK 25 (Linux, SSE4.2: recorded under Rosetta, which has no
+AVX), is also unrolled four times and kept scalar. x86 folds each load into the
+arithmetic, and SSE's two-operand forms overwrite their destination, so every copy first
+copies `a` from `xmm0`:
+
+```
+  bytes                     count  offset  instruction
+  66 0f 28 d8                   0  +0x104  movapd xmm3, xmm0
+  66 49 0f 7e d3                0  +0x108  movq r11, xmm2
+  f2 43 0f 59 5c f3 10          5  +0x10d  mulsd xmm3, qword ptr [r11 + 8*r14 + 0x10]
+  f2 0f 58 5c f1 10             5  +0x114  addsd xmm3, qword ptr [rcx + 8*rsi + 0x10]
+  f2 0f 11 5c f1 10             1  +0x11a  movsd qword ptr [rcx + 8*rsi + 0x10], xmm3
+  66 0f 28 d8                   0  +0x120  movapd xmm3, xmm0
+  f2 43 0f 59 5c f3 18          3  +0x124  mulsd xmm3, qword ptr [r11 + 8*r14 + 0x18]
+  f2 0f 58 5c f1 18             8  +0x12b  addsd xmm3, qword ptr [rcx + 8*rsi + 0x18]
+  f2 0f 11 5c f1 18             9  +0x131  movsd qword ptr [rcx + 8*rsi + 0x18], xmm3
+  66 0f 28 d8                   0  +0x137  movapd xmm3, xmm0
+  f2 43 0f 59 5c f3 20          6  +0x13b  mulsd xmm3, qword ptr [r11 + 8*r14 + 0x20]
+  f2 0f 58 5c f1 20             9  +0x142  addsd xmm3, qword ptr [rcx + 8*rsi + 0x20]
+  f2 0f 11 5c f1 20             4  +0x148  movsd qword ptr [rcx + 8*rsi + 0x20], xmm3
+  66 0f 28 d8                   0  +0x14e  movapd xmm3, xmm0
+  f2 43 0f 59 5c eb 28          9  +0x152  mulsd xmm3, qword ptr [r11 + 8*r13 + 0x28]
+  f2 42 0f 58 5c c9 28          6  +0x159  addsd xmm3, qword ptr [rcx + 8*r9 + 0x28]
+  f2 42 0f 11 5c c9 28         27  +0x160  movsd qword ptr [rcx + 8*r9 + 0x28], xmm3
+  41 83 c2 04                   2  +0x167  add r10d, 0x4
+  44 3b d0                      1  +0x16b  cmp r10d, eax
+  0f 8c 6f ff ff ff             0  +0x16e  jl <+0xe3>
+```
+
+`movq r11, xmm2` reloads `x`'s address, which C2 has spilled to a vector register. Like
+`movapd xmm3, xmm0`, it moves a scalar, so neither makes the loop count as vectorised:
+on x86 that takes a `ymm` or `zmm` register, a whole vector in memory (`xmmword ptr`...)
+or a packed operation. With AVX, the copies use three-operand forms instead
+(`vmulsd xmm3, xmm0, qword ptr [...]`), with no copy of `a`. An `int` kernel is compiled
+to read-modify-writes of memory, `add dword ptr [rcx + 4*rdi + 0x10], edx`, each a load,
+an add and a store in one instruction.
+
 ### The rule
 
 `MissedVectorisationRule` looks for the copies a superword pass would pack, starting from
 the stores, as superword does. In each innermost loop with at least 10% of the method's
-samples and no SIMD instructions, it follows each plain store's data register back
-through the iteration to the expression computing it, made of loads, values from outside
-the loop (`d0`), and operations with vector equivalents: floating-point arithmetic and
+samples and no vector instructions, it follows each plain store's data register back
+through the iteration to the expression computing it, made of loads (on x86, also the
+memory operands folded into arithmetic), values from outside the loop (`d0`, `xmm0`), and
+operations with vector equivalents: floating-point arithmetic, fused multiply-adds and
 conversions, integer add, subtract, logic, shifts and extensions, and 32-bit multiplies
-(Advanced SIMD has no 64-bit multiply). Stores whose expressions match, operation by
-operation and immediate by immediate, are copies if:
+(Advanced SIMD has no 64-bit multiply, and x86 only has one with AVX-512). An x86
+read-modify-write of memory is a store of its result. Stores whose expressions match,
+operation by operation and immediate by immediate, are copies if:
 
 - they store adjacent elements, and the loads in each position of their expressions load
   adjacent elements: their immediate offsets step by the element's size;
@@ -1459,11 +1502,16 @@ operation and immediate by immediate, are copies if:
 So it doesn't report a recurrence such as `y[i] = a * y[i - 1] + x[i]`, which C2 also
 unrolls (eight times on JDK 25) but whose copies each take the previous copy's result in a
 register; a floating-point sum, which stores nothing and which C2 can't vectorise without
-changing its rounding; or a `long` multiply. For the profile above:
+changing its rounding; or a `long` multiply.
+
+What is an operation, a load, a store or a vector instruction differs by architecture, so
+the rule takes a `VectorisationModel`: `Aarch64VectorisationModel` or
+`X86VectorisationModel`, or `VectorisationModel.forArchitecture(System.getProperty("os.arch"))`.
+For the AArch64 profile above:
 
 ```java
 List<Instruction> code = new Aarch64Disassembler().decodeAll(profile.machineCode().orElseThrow(), profile.address());
-List<MissedVectorisation> findings = new MissedVectorisationRule().apply(
+List<MissedVectorisation> findings = new MissedVectorisationRule(new Aarch64VectorisationModel()).apply(
         code, new Aarch64RegisterModel(), i -> profile.count((int) (i.address() - profile.address())));
 MissedVectorisation found = findings.get(0);
 found.header();       // +0xe0
@@ -1473,6 +1521,10 @@ found.copies();       // each copy's ldr, ldr, fmul, fadd, str, the stores at +0
 found.operations();   // fmul d16, d16, d0; fadd d16, d16, d17
 found.samples();      // 99, all of the method's
 ```
+
+On x86 (`new MissedVectorisationRule(new X86VectorisationModel())` with an
+`X86Disassembler` and `X86RegisterModel`), the listing above gives the loop at `+0xe3`,
+4 lanes of 8 bytes, each copy `movapd`, `mulsd`, `addsd`, `movsd`.
 
 The fix is usually to give C2 code it can compare: index both arrays from zero (copy a
 slice, or pass the arrays without offsets where the offsets are always zero), or write
