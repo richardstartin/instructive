@@ -27,7 +27,8 @@ import java.util.function.ToLongFunction;
  *       out values it produces;</li>
  *   <li>maximal straight-line chains (ones no later instruction extends) of at least
  *       {@code minimumChainLength} instructions, unless all of their instructions are
- *       in a reported recurrence.</li>
+ *       in a reported recurrence's chain: a chain from the first element's load into
+ *       the cycle is the recurrence.</li>
  * </ul>
  * Findings come hottest first, by {@link DependencyChain#samples()}, then by critical path.
  */
@@ -77,6 +78,9 @@ public final class LongDependencyChainRule {
         List<DependencyGraph.Recurrence> recurrences = new ArrayList<>(graph.recurrences());
         recurrences.sort(Comparator.comparingInt(DependencyGraph.Recurrence::length).reversed());
         List<Set<Integer>> reported = new ArrayList<>();
+        // Every reported recurrence's instructions: its cycle, and the loads and address
+        // arithmetic feeding it.
+        List<Set<Integer>> reportedInstructions = new ArrayList<>();
         for (DependencyGraph.Recurrence recurrence : recurrences) {
             Set<Integer> members = new HashSet<>(recurrence.cycle());
             if (recurrence.length() < minimumRecurrenceLength || reported.stream().anyMatch(r -> r.containsAll(members))) {
@@ -95,6 +99,7 @@ public final class LongDependencyChainRule {
             List<Integer> chain = new ArrayList<>(graph.dependenciesWithin(producer, recurrence.loop()));
             chain.addAll(graph.storesOf(chain, recurrence.loop()));
             Collections.sort(chain);
+            reportedInstructions.add(new HashSet<>(chain));
             findings.add(new DependencyChain(DependencyChain.Kind.LOOP_CARRIED, instructions(graph, chain),
                     instructions(graph, recurrence.cycle()), sum(sampleCounts, chain), loopSamples,
                     Optional.of(recurrence.register()), OptionalLong.of(header)));
@@ -105,7 +110,9 @@ public final class LongDependencyChainRule {
                 continue;
             }
             List<Integer> chain = graph.longestChainEndingAt(i);
-            if (reported.stream().anyMatch(r -> r.containsAll(chain))) {
+            // A chain into a recurrence, such as the first element's load and then the
+            // cycle, is part of the recurrence's finding.
+            if (reportedInstructions.stream().anyMatch(r -> r.containsAll(chain))) {
                 continue;
             }
             int first = chain.stream().mapToInt(Integer::intValue).min().orElseThrow();
