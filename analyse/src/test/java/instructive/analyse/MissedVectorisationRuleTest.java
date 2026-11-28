@@ -4,15 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import instructive.analyse.aarch64.Aarch64VectorisationModel;
-import instructive.analyse.x86.X86VectorisationModel;
-import instructive.parse.Disassembler;
 import instructive.parse.Instruction;
-import instructive.parse.RegisterModel;
-import instructive.parse.aarch64.Aarch64Disassembler;
-import instructive.parse.aarch64.Aarch64RegisterModel;
-import instructive.parse.x86.X86Disassembler;
-import instructive.parse.x86.X86RegisterModel;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,40 +16,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 class MissedVectorisationRuleTest {
     private static final long BASE = Listing.BASE;
-
-    /** An architecture's decoder and models, and where its listings are. */
-    enum Architecture {
-        AARCH64("", new Aarch64Disassembler(), new Aarch64RegisterModel(), new Aarch64VectorisationModel()),
-        X86("x86/", new X86Disassembler(), new X86RegisterModel(), new X86VectorisationModel());
-
-        final String directory;
-        final Disassembler disassembler;
-        final RegisterModel registers;
-        final VectorisationModel model;
-
-        Architecture(String directory, Disassembler disassembler, RegisterModel registers, VectorisationModel model) {
-            this.directory = directory;
-            this.disassembler = disassembler;
-            this.registers = registers;
-            this.model = model;
-        }
-
-        Listing load(String resource) {
-            return Listing.load(directory + resource, disassembler);
-        }
-
-        List<MissedVectorisation> apply(Listing listing) {
-            return new MissedVectorisationRule(model).apply(listing.code(), registers, listing::count);
-        }
-
-        List<MissedVectorisation> apply(List<Instruction> code) {
-            return new MissedVectorisationRule(model).apply(code, registers);
-        }
-
-        List<MissedVectorisation> apply(String... bytes) {
-            return apply(Listing.decode(disassembler, bytes));
-        }
-    }
 
     // Two copies of x[i] * a, storing adjacent doubles: unrolled twice, not vectorised.
     private static final String[] AARCH64_TWO_COPIES = {
@@ -236,7 +194,7 @@ class MissedVectorisationRuleTest {
             Architecture architecture, String resource, int header, int elementSize, List<Integer> stores,
             List<String> copy, List<String> operations, long samples) {
         Listing method = architecture.load(resource);
-        List<MissedVectorisation> findings = architecture.apply(method);
+        List<MissedVectorisation> findings = apply(architecture, method);
         assertEquals(1, findings.size(), () -> describe(findings));
         MissedVectorisation found = findings.get(0);
         assertEquals(BASE + header, found.header(), () -> describe(findings));
@@ -253,9 +211,9 @@ class MissedVectorisationRuleTest {
 
     @Test
     void operationsAreTheFirstCopys() {
-        MissedVectorisation aarch64 = Architecture.AARCH64.apply(Architecture.AARCH64.load("daxpy-offsets.tsv")).get(0);
+        MissedVectorisation aarch64 = apply(Architecture.AARCH64, Architecture.AARCH64.load("daxpy-offsets.tsv")).get(0);
         assertEquals(List.of("fmul d16, d16, d0", "fadd d16, d16, d17"), aarch64.operations().stream().map(Instruction::text).toList());
-        MissedVectorisation x86 = Architecture.X86.apply(Architecture.X86.load("daxpy-offsets.tsv")).get(0);
+        MissedVectorisation x86 = apply(Architecture.X86, Architecture.X86.load("daxpy-offsets.tsv")).get(0);
         assertEquals(List.of("mulsd xmm3, qword ptr [r11 + 8*r14 + 0x10]", "addsd xmm3, qword ptr [rcx + 8*rsi + 0x10]"),
                 x86.operations().stream().map(Instruction::text).toList());
     }
@@ -279,9 +237,9 @@ class MissedVectorisationRuleTest {
     @MethodSource
     void cannotBeVectorised(Architecture architecture, String resource) {
         Listing method = architecture.load(resource);
-        List<MissedVectorisation> sampled = architecture.apply(method);
+        List<MissedVectorisation> sampled = apply(architecture, method);
         assertEquals(List.of(), sampled, () -> describe(sampled));
-        List<MissedVectorisation> unsampled = architecture.apply(method.code());
+        List<MissedVectorisation> unsampled = apply(architecture, method.code());
         assertEquals(List.of(), unsampled, () -> describe(unsampled));
     }
 
@@ -302,7 +260,7 @@ class MissedVectorisationRuleTest {
     @ParameterizedTest(name = "{0} {1}")
     @MethodSource
     void synthetic(Architecture architecture, String description, String[] bytes, List<Integer> stores) {
-        List<MissedVectorisation> findings = architecture.apply(bytes);
+        List<MissedVectorisation> findings = apply(architecture, bytes);
         if (stores.isEmpty()) {
             assertEquals(List.of(), findings, () -> describe(findings));
         } else {
@@ -313,9 +271,21 @@ class MissedVectorisationRuleTest {
 
     @Test
     void leavesLoopsWithoutCopiesAlone() {
-        assertTrue(Architecture.AARCH64.apply(Listing.decode(LongDependencyChainRuleTest.HASH_LOOP)).isEmpty());
-        assertTrue(Architecture.AARCH64.apply(Listing.decode(LongDependencyChainRuleTest.DELTA_LOOP)).isEmpty());
-        assertTrue(Architecture.AARCH64.apply(Listing.load("add-with-call-in-condition.tsv").code()).isEmpty());
+        assertTrue(apply(Architecture.AARCH64, Listing.decode(LongDependencyChainRuleTest.HASH_LOOP)).isEmpty());
+        assertTrue(apply(Architecture.AARCH64, Listing.decode(LongDependencyChainRuleTest.DELTA_LOOP)).isEmpty());
+        assertTrue(apply(Architecture.AARCH64, Listing.load("add-with-call-in-condition.tsv").code()).isEmpty());
+    }
+
+    private static List<MissedVectorisation> apply(Architecture architecture, Listing listing) {
+        return new MissedVectorisationRule(architecture.vectorisation).apply(listing.code(), architecture.registers, listing::count);
+    }
+
+    private static List<MissedVectorisation> apply(Architecture architecture, List<Instruction> code) {
+        return new MissedVectorisationRule(architecture.vectorisation).apply(code, architecture.registers);
+    }
+
+    private static List<MissedVectorisation> apply(Architecture architecture, String... bytes) {
+        return apply(architecture, Listing.decode(architecture.disassembler, bytes));
     }
 
     private static List<Integer> stores(MissedVectorisation found) {

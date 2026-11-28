@@ -1,0 +1,109 @@
+# Fetch.atomicLong(LAtomicLong;[I)J: for (int i = 0; i < d.length; i++) s += a.addAndGet(d[i])
+# C2 on JDK 25, Linux x86-64 (SSE4.2, Rosetta on an Apple M2), one second of samples. Columns: bytes, samples, offset and disassembly.
+89 84 24 00 c0 fe ff	0	+0x000  mov dword ptr [rsp - 0x14000], eax
+55	0	+0x007  push rbp
+48 83 ec 20	0	+0x008  sub rsp, 0x20
+41 81 7f 20 01 00 00 00	0	+0x00c  cmp dword ptr [r15 + 0x20], 0x1
+0f 85 60 01 00 00	0	+0x014  jne 0x7fffe7fddffa
+44 8b 4a 0c	0	+0x01a  mov r9d, dword ptr [rdx + 0xc]
+45 85 c9	0	+0x01e  test r9d, r9d
+0f 86 05 01 00 00	0	+0x021  jbe 0x7fffe7fddfac
+45 8b d1	0	+0x027  mov r10d, r9d
+41 ff ca	0	+0x02a  dec r10d
+45 3b d1	0	+0x02d  cmp r10d, r9d
+0f 83 fa 00 00 00	0	+0x030  jae 0x7fffe7fddfb0
+48 85 f6	0	+0x036  test rsi, rsi
+0f 84 f1 00 00 00	0	+0x039  je 0x7fffe7fddfb0
+4c 63 52 10	0	+0x03f  movsxd r10, dword ptr [rdx + 0x10]
+49 8b c2	0	+0x043  mov rax, r10
+f0 48 0f c1 46 10	0	+0x046  lock xadd qword ptr [rsi + 0x10], rax
+49 03 c2	0	+0x04c  add rax, r10
+45 8b d1	0	+0x04f  mov r10d, r9d
+41 83 c2 fd	0	+0x052  add r10d, -0x3
+41 b8 01 00 00 00	0	+0x056  mov r8d, 0x1
+41 83 fa 01	0	+0x05c  cmp r10d, 0x1
+0f 8e 93 00 00 00	0	+0x060  jle 0x7fffe7fddf79
+b9 a0 0f 00 00	0	+0x066  mov ecx, 0xfa0
+45 8b d9	0	+0x06b  mov r11d, r9d
+45 2b d8	0	+0x06e  sub r11d, r8d
+41 83 c3 fd	0	+0x071  add r11d, -0x3
+33 db	0	+0x075  xor ebx, ebx
+45 3b d0	0	+0x077  cmp r10d, r8d
+44 0f 4c db	0	+0x07a  cmovl r11d, ebx
+41 81 fb a0 0f 00 00	0	+0x07e  cmp r11d, 0xfa0
+44 0f 47 d9	0	+0x085  cmova r11d, ecx
+45 03 d8	0	+0x089  add r11d, r8d
+0f 1f 40 00	0	+0x08c  nop dword ptr [rax]
+4a 63 6c 82 10	0	+0x090  movsxd rbp, dword ptr [rdx + 4*r8 + 0x10]
+48 8b dd	0	+0x095  mov rbx, rbp
+f0 48 0f c1 5e 10	0	+0x098  lock xadd qword ptr [rsi + 0x10], rbx
+4e 63 74 82 14	13	+0x09e  movsxd r14, dword ptr [rdx + 4*r8 + 0x14]
+49 8b fe	0	+0x0a3  mov rdi, r14
+f0 48 0f c1 7e 10	4	+0x0a6  lock xadd qword ptr [rsi + 0x10], rdi
+4e 63 6c 82 18	24	+0x0ac  movsxd r13, dword ptr [rdx + 4*r8 + 0x18]
+48 03 dd	0	+0x0b1  add rbx, rbp
+49 8b ed	0	+0x0b4  mov rbp, r13
+f0 48 0f c1 6e 10	6	+0x0b7  lock xadd qword ptr [rsi + 0x10], rbp
+48 03 d8	13	+0x0bd  add rbx, rax
+49 03 fe	2	+0x0c0  add rdi, r14
+4a 63 44 82 1c	10	+0x0c3  movsxd rax, dword ptr [rdx + 4*r8 + 0x1c]
+48 03 fb	1	+0x0c8  add rdi, rbx
+48 8b d8	0	+0x0cb  mov rbx, rax
+f0 48 0f c1 5e 10	0	+0x0ce  lock xadd qword ptr [rsi + 0x10], rbx
+49 03 ed	18	+0x0d4  add rbp, r13
+48 03 c3	2	+0x0d7  add rax, rbx
+48 03 ef	1	+0x0da  add rbp, rdi
+48 03 c5	0	+0x0dd  add rax, rbp
+41 83 c0 04	2	+0x0e0  add r8d, 0x4
+45 3b c3	1	+0x0e4  cmp r8d, r11d
+7c a7	2	+0x0e7  jl 0x7fffe7fddf10
+4d 8b 5f 30	0	+0x0e9  mov r11, qword ptr [r15 + 0x30]
+41 85 03	0	+0x0ed  test dword ptr [r11], eax
+45 3b c2	0	+0x0f0  cmp r8d, r10d
+0f 8c 72 ff ff ff	0	+0x0f3  jl 0x7fffe7fddeeb
+45 3b c1	0	+0x0f9  cmp r8d, r9d
+7d 1e	0	+0x0fc  jge 0x7fffe7fddf9c
+66 90	0	+0x0fe  nop
+4e 63 54 82 10	0	+0x100  movsxd r10, dword ptr [rdx + 4*r8 + 0x10]
+4d 8b da	0	+0x105  mov r11, r10
+f0 4c 0f c1 5e 10	0	+0x108  lock xadd qword ptr [rsi + 0x10], r11
+4d 03 da	0	+0x10e  add r11, r10
+49 03 c3	0	+0x111  add rax, r11
+41 ff c0	0	+0x114  inc r8d
+45 3b c1	0	+0x117  cmp r8d, r9d
+7c e4	0	+0x11a  jl 0x7fffe7fddf80
+48 83 c4 20	0	+0x11c  add rsp, 0x20
+5d	0	+0x120  pop rbp
+49 3b 67 28	0	+0x121  cmp rsp, qword ptr [r15 + 0x28]
+0f 87 39 00 00 00	0	+0x125  ja 0x7fffe7fddfe4
+c3	0	+0x12b  ret
+33 c0	0	+0x12c  xor eax, eax
+eb ec	0	+0x12e  jmp 0x7fffe7fddf9c
+48 8b ee	0	+0x130  mov rbp, rsi
+48 89 14 24	0	+0x133  mov qword ptr [rsp], rdx
+44 89 4c 24 08	0	+0x137  mov dword ptr [rsp + 0x8], r9d
+be 6e ff ff ff	0	+0x13c  mov esi, 0xffffff6e
+66 90	0	+0x141  nop
+e8 18 aa b1 ff	0	+0x143  call 0x7fffe7af89e0
+0f 1f 84 00 40 02 00 01	0	+0x148  nop dword ptr [rax + rax + 0x1000240]
+be f6 ff ff ff	0	+0x150  mov esi, 0xfffffff6
+66 90	0	+0x155  nop
+e8 04 aa b1 ff	0	+0x157  call 0x7fffe7af89e0
+0f 1f 84 00 54 02 00 02	0	+0x15c  nop dword ptr [rax + rax + 0x2000254]
+49 ba a1 df fd e7 ff 7f 00 00	0	+0x164  movabs r10, 0x7fffe7fddfa1
+4d 89 97 38 05 00 00	0	+0x16e  mov qword ptr [r15 + 0x538], r10
+e9 e6 73 a4 ff	0	+0x175  jmp 0x7fffe7a253e0
+e8 01 ce a2 ff	0	+0x17a  call 0x7fffe7a0ae00
+e9 96 fe ff ff	0	+0x17f  jmp 0x7fffe7fdde9a
+f4	0	+0x184  hlt
+f4	0	+0x185  hlt
+f4	0	+0x186  hlt
+f4	0	+0x187  hlt
+e9 d3 ac b1 ff	0	+0x188  jmp 0x7fffe7af8ce0
+e8 00 00 00 00	0	+0x18d  call 0x7fffe7fde012
+48 83 2c 24 05	0	+0x192  sub qword ptr [rsp], 0x5
+e9 c4 76 a4 ff	0	+0x197  jmp 0x7fffe7a256e0
+f4	0	+0x19c  hlt
+f4	0	+0x19d  hlt
+f4	0	+0x19e  hlt
+f4	0	+0x19f  hlt

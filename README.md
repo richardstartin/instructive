@@ -156,6 +156,7 @@ model and the samples per instruction, and returns its findings hottest first.
 | `UnpredictableBranchRule` | hot loops branching on the data they load, whose samples land where mispredicted branches' would | [Finding unpredictable branches](#finding-unpredictable-branches) |
 | `MegamorphicCallRule` | virtual and interface calls dispatching through a vtable or itable stub, whose cost the agent attributes to the call | [Finding megamorphic calls](#finding-megamorphic-calls) |
 | `MissedVectorisationRule` | unrolled loops whose copies do the same scalar operations on adjacent elements, which C2 didn't vectorise, often because two arrays might overlap | [Finding missed vectorisation](#finding-missed-vectorisation) |
+| `FetchInLoopRule` | hot loops that execute atomic updates, fences, or acquire loads and release stores on every iteration, as `Atomic*`, `LongAdder` and volatile fields compile to | [Finding atomics in hot loops](#finding-atomics-in-hot-loops) |
 
 ## Finding long dependency chains
 
@@ -1529,6 +1530,132 @@ On x86 (`new MissedVectorisationRule(new X86VectorisationModel())` with an
 The fix is usually to give C2 code it can compare: index both arrays from zero (copy a
 slice, or pass the arrays without offsets where the offsets are always zero), or write
 the kernel with the Vector API.
+
+## Finding atomics in hot loops
+
+`AtomicLong`, `AtomicInteger`, `AtomicBoolean`, `LongAdder` and volatile fields compile
+to atomic read-modify-writes, fences, and acquire loads and release stores. Each atomic
+read-modify-write has to own its cache line and, in the orderings Java gives it, keeps
+later accesses from starting until it completes, so the CPU can't overlap one iteration's
+update with the next. On one thread, with no contention, the measurements below put that
+at several times an ordinary add; across threads, each update also moves the cache line
+between cores. Volatile reads and writes (`get()`, `set()`) cost less, but still constrain
+reordering on AArch64.
+
+### Updating an AtomicLong per element
+
+```java
+static long addAndGet(AtomicLong counter, int[] data) {
+    long sum = 0;
+    for (int i = 0; i < data.length; i++) {
+        sum += counter.addAndGet(data[i]);
+    }
+    return sum;
+}
+```
+
+On 4,096-element arrays, uncontended, one thread, JDK 25 on an Apple M2 (best of 10 rounds):
+
+| loop body | macOS | Linux (Docker) | what C2 emits per element (AArch64; x86) |
+|---|---|---|---|
+| `box[0] += data[i]` | 0.58 ns/element | 0.85 | loads and adds: C2 keeps `box[0]` in a register |
+| `sum += data[i]`, then `counter.addAndGet(sum)` once | 0.56 | 0.78 | nothing atomic in the loop |
+| `counter.addAndGet(data[i])` | 3.75 | 3.78 | `ldaddal`; `lock xadd` |
+| `counter.incrementAndGet()`, result unused | 1.87 | 1.97 | `ldaddal` into `xzr`; `lock add` |
+| `AtomicInteger.getAndAdd(data[i])` | 3.76 | 4.38 | `ldaddal`; `lock xadd` |
+| `AtomicBoolean.compareAndSet(...)` | 3.72 | 7.73 | `casal`; `lock cmpxchg` |
+| `LongAdder.add(data[i])` | 4.87 | 8.75 | `ldar`, `ldar`, `dmb ish`, `casl`; `lock cmpxchg` |
+| `AtomicInteger.get() ^ data[i]` | 0.31 | 0.32 | `ldar`; a plain `mov` |
+| `AtomicBoolean.set(...)` | 0.29 | 0.60 | `stlr`; a plain `mov`, and a fence per unrolled iteration |
+
+An uncontended `LongAdder` is no cheaper than an `AtomicLong`: until it sees contention it
+CASes its base, after reading its `cells` and `base` fields. Its cells only help when
+threads collide.
+
+The loop on JDK 25 (Linux, AArch64) is unrolled four times, with an `ldaddal` (an atomic
+add, with acquire and release semantics) per element. The samples land mostly on the
+instruction after each `ldaddal`, where the CPU waits for it:
+
+```
+  bytes                     count  offset  instruction
+  50 c8 2d 8b                   1  +0x090  add x16, x2, w13, sxtw #2
+  11 12 80 b9                   1  +0x094  ldrsw x17, [x16, #0x10]
+  72 02 f1 f8                   6  +0x098  ldaddal x17, x18, [x19]
+  01 16 80 b9                  14  +0x09c  ldrsw x1, [x16, #0x14]
+  83 02 e1 f8                   5  +0x0a0  ldaddal x1, x3, [x20]
+  04 1a 80 b9                  11  +0x0a4  ldrsw x4, [x16, #0x18]
+  a5 02 e4 f8                   6  +0x0a8  ldaddal x4, x5, [x21]
+  10 1e 80 b9                  12  +0x0ac  ldrsw x16, [x16, #0x1c]
+  e6 00 f0 f8                   0  +0x0b0  ldaddal x16, x6, [x7]
+  51 02 11 8b                  18  +0x0b4  add x17, x18, x17
+  ...
+  ad 11 00 11                   2  +0x0d0  add w13, w13, #0x4
+  00 02 11 8b                   1  +0x0d4  add x0, x16, x17
+  bf 01 0f 6b                   0  +0x0d8  cmp w13, w15
+  ab fd ff 54                   0  +0x0dc  b.lt <+0x90>
+```
+
+On x86 it is a `lock xadd` per element, and the samples land the same way:
+
+```
+  bytes                     count  offset  instruction
+  4a 63 6c 82 10                0  +0x090  movsxd rbp, dword ptr [rdx + 4*r8 + 0x10]
+  48 8b dd                      0  +0x095  mov rbx, rbp
+  f0 48 0f c1 5e 10             0  +0x098  lock xadd qword ptr [rsi + 0x10], rbx
+  4e 63 74 82 14               13  +0x09e  movsxd r14, dword ptr [rdx + 4*r8 + 0x14]
+  49 8b fe                      0  +0x0a3  mov rdi, r14
+  f0 48 0f c1 7e 10             4  +0x0a6  lock xadd qword ptr [rsi + 0x10], rdi
+  4e 63 6c 82 18               24  +0x0ac  movsxd r13, dword ptr [rdx + 4*r8 + 0x18]
+  ...
+```
+
+Without LSE (`-XX:-UseLSE`, or a CPU without it), each update is instead a small loop of
+its own: `ldaxr`, `add`, `stlxr`, and `cbnz` back to the `ldaxr` if another core got in
+between.
+
+### The rule
+
+`FetchInLoopRule` takes a `MemoryOrderingModel` (`Aarch64MemoryOrderingModel`,
+`X86MemoryOrderingModel`, or `MemoryOrderingModel.forArchitecture(os.arch)`), which
+classifies instructions as:
+
+| | AArch64 | x86-64 |
+|---|---|---|
+| acquire loads | `ldar`, `ldapr` and their forms | none: volatile reads are plain `mov`s |
+| release stores | `stlr` and its forms | none: volatile writes are plain `mov`s |
+| atomic updates | LSE atomics in every ordering (`ldaddal`, `casal`, `casl`, `swpal`, `ldsetal`...), load/store-exclusives | `lock`-prefixed instructions, `xchg` with memory |
+| fences | `dmb` (`ish`, `ishld`, `ishst`) | `mfence`, a locked add or or of 0 to the stack (`lock add dword ptr [rsp - 0x40], 0x0`) |
+
+Each such instruction belongs to the smallest loop containing it, skipping the retry loop
+of a load/store-exclusive pair. A loop is reported if it has at least 10% of the method's
+samples (or always, without samples). The finding lists the accesses with their kind and
+samples, counting the instruction after each one too, since that's where a stalled
+access's samples land. For the AArch64 profile above:
+
+```java
+List<Instruction> code = new Aarch64Disassembler().decodeAll(profile.machineCode().orElseThrow(), profile.address());
+List<FetchInLoop> findings = new FetchInLoopRule(new Aarch64MemoryOrderingModel())
+        .apply(code, i -> profile.count((int) (i.address() - profile.address())));
+FetchInLoop loop = findings.get(0);
+loop.header();                                // +0x90
+loop.accesses();                              // the four ldaddal, each ATOMIC_UPDATE
+loop.accesses(Ordering.ATOMIC_UPDATE).size(); // 4
+loop.samples();                               // 82, all of the method's
+loop.accessSamples();                         // 72, on the ldaddal and the instructions after them
+```
+
+Findings are ranked by `accessSamples`. Uncontended, acquire loads and release stores
+have few of their loop's samples (`AtomicInteger.get()`: 45 of 97; `AtomicBoolean.set`:
+21 of 95) and atomic updates most of them (`AtomicLong.incrementAndGet()`: 95 of 99),
+so a loop with an atomic update ranks above one that only reads a volatile field. An
+atomic updated once after the loop isn't reported.
+
+What the rule reports is where these instructions execute and how many samples they and
+the instructions after them have. It can't tell whether the program needs them on every
+iteration, and timer samples can't tell an uncontended update from one whose cache line is
+moving between cores. A stack profile that resolves inlined frames also shows calls such
+as `AtomicLong.addAndGet` as hot; volatile field accesses and barriers the compiler
+inserts have no frame of their own, and show up here only.
 
 ## Using it
 

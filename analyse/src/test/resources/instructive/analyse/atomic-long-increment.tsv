@@ -1,0 +1,98 @@
+# Fetch.atomicLongIncrement(LAtomicLong;[I)J: for (int i = 0; i < d.length; i++) a.incrementAndGet(), the result unused
+# C2 on JDK 25, Linux aarch64, one second of samples. Columns: bytes, samples, offset and disassembly.
+1f 20 03 d5	0	+0x000  nop
+e9 53 40 d1	0	+0x004  sub x9, sp, #0x14, lsl #12
+3f 01 00 f9	0	+0x008  str xzr, [x9]
+ff c3 00 d1	0	+0x00c  sub sp, sp, #0x30
+fd 7b 02 a9	0	+0x010  stp x29, x30, [sp, #0x20]
+a8 0a 00 18	0	+0x014  ldr w8, 0xffff8ffb2a68
+89 23 40 b9	0	+0x018  ldr w9, [x28, #0x20]
+1f 01 09 eb	0	+0x01c  cmp x8, x9
+a1 09 00 54	0	+0x020  b.ne 0xffff8ffb2a54
+e3 03 01 aa	0	+0x024  mov x3, x1
+4a 0c 40 b9	0	+0x028  ldr w10, [x2, #0xc]
+8a 05 00 34	0	+0x02c  cbz w10, 0xffff8ffb29dc
+21 07 00 b4	0	+0x030  cbz x1, 0xffff8ffb2a14
+2b 40 00 91	0	+0x034  add x11, x1, #0x10
+e9 03 40 b2	0	+0x038  orr x9, xzr, #0x1
+7f 01 e9 f8	0	+0x03c  ldaddal x9, xzr, [x11]
+4b 0d 00 51	0	+0x040  sub w11, w10, #0x3
+ed 03 00 32	0	+0x044  orr w13, wzr, #0x1
+7f 05 00 71	0	+0x048  cmp w11, #0x1
+8d 03 00 54	0	+0x04c  b.le 0xffff8ffb29bc
+2c 40 00 91	0	+0x050  add x12, x1, #0x10
+2e 40 00 91	0	+0x054  add x14, x1, #0x10
+2f 40 00 91	0	+0x058  add x15, x1, #0x10
+30 40 00 91	0	+0x05c  add x16, x1, #0x10
+12 f4 81 52	0	+0x060  mov w18, #0xfa0
+51 01 0d 4b	0	+0x064  sub w17, w10, w13
+7f 01 0d 6b	0	+0x068  cmp w11, w13
+20 0e 00 51	0	+0x06c  sub w0, w17, #0x3
+e0 b3 80 1a	0	+0x070  csel w0, wzr, w0, lt
+1f 80 3e 71	0	+0x074  cmp w0, #0xfa0
+40 82 80 1a	0	+0x078  csel w0, w18, w0, hi
+11 00 0d 0b	0	+0x07c  add w17, w0, w13
+e9 03 40 b2	0	+0x080  orr x9, xzr, #0x1
+df 01 e9 f8	0	+0x084  ldaddal x9, xzr, [x14]
+e9 03 40 b2	0	+0x088  orr x9, xzr, #0x1
+ff 01 e9 f8	0	+0x08c  ldaddal x9, xzr, [x15]
+e9 03 40 b2	15	+0x090  orr x9, xzr, #0x1
+1f 02 e9 f8	5	+0x094  ldaddal x9, xzr, [x16]
+e9 03 40 b2	17	+0x098  orr x9, xzr, #0x1
+9f 01 e9 f8	2	+0x09c  ldaddal x9, xzr, [x12]
+ad 11 00 11	56	+0x0a0  add w13, w13, #0x4
+bf 01 11 6b	2	+0x0a4  cmp w13, w17
+cb fe ff 54	2	+0x0a8  b.lt 0xffff8ffb2980
+91 1b 40 f9	0	+0x0ac  ldr x17, [x28, #0x30]
+3f 02 40 b9	0	+0x0b0  ldr wzr, [x17]
+bf 01 0b 6b	0	+0x0b4  cmp w13, w11
+6b fd ff 54	0	+0x0b8  b.lt 0xffff8ffb2964
+bf 01 0a 6b	0	+0x0bc  cmp w13, w10
+ea 00 00 54	0	+0x0c0  b.ge 0xffff8ffb29dc
+6b 40 00 91	0	+0x0c4  add x11, x3, #0x10
+e9 03 40 b2	0	+0x0c8  orr x9, xzr, #0x1
+7f 01 e9 f8	0	+0x0cc  ldaddal x9, xzr, [x11]
+ad 05 00 11	0	+0x0d0  add w13, w13, #0x1
+bf 01 0a 6b	0	+0x0d4  cmp w13, w10
+8b ff ff 54	0	+0x0d8  b.lt 0xffff8ffb29c8
+23 01 00 b4	0	+0x0dc  cbz x3, 0xffff8ffb2a00
+6a 40 00 91	0	+0x0e0  add x10, x3, #0x10
+40 fd df c8	0	+0x0e4  ldar x0, [x10]
+fd 7b 42 a9	0	+0x0e8  ldp x29, x30, [sp, #0x20]
+ff c3 00 91	0	+0x0ec  add sp, sp, #0x30
+88 17 40 f9	0	+0x0f0  ldr x8, [x28, #0x28]
+ff 63 28 eb	0	+0x0f4  cmp sp, x8
+88 02 00 54	0	+0x0f8  b.hi 0xffff8ffb2a48
+c0 03 5f d6	0	+0x0fc  ret
+21 01 80 12	0	+0x100  mov w1, #-0xa
+9f 81 ec 97	0	+0x104  bl 0xffff8fad3080
+1f 20 03 d5	0	+0x108  nop
+1f 40 80 f2	0	+0x10c  movk xzr, #0x200
+1f 20 80 f2	0	+0x110  movk xzr, #0x100
+21 12 80 12	0	+0x114  mov w1, #-0x92
+fd 03 03 aa	0	+0x118  mov x29, x3
+e2 03 00 f9	0	+0x11c  str x2, [sp]
+ea 0b 00 b9	0	+0x120  str w10, [sp, #0x8]
+97 81 ec 97	0	+0x124  bl 0xffff8fad3080
+1f 20 03 d5	0	+0x128  nop
+1f 44 80 f2	0	+0x12c  movk xzr, #0x220
+1f 40 80 f2	0	+0x130  movk xzr, #0x200
+21 01 80 12	0	+0x134  mov w1, #-0xa
+92 81 ec 97	0	+0x138  bl 0xffff8fad3080
+1f 20 03 d5	0	+0x13c  nop
+9f 46 80 f2	0	+0x140  movk xzr, #0x234
+1f 60 80 f2	0	+0x144  movk xzr, #0x300
+48 fd ff 10	0	+0x148  adr x8, 0xffff8ffb29f0
+88 a3 02 f9	0	+0x14c  str x8, [x28, #0x540]
+8c 28 e9 17	0	+0x150  b 0xffff8f9fcc80
+08 30 88 d2	0	+0x154  mov x8, #0x4180
+08 f4 b1 f2	0	+0x158  movk x8, #0x8fa0, lsl #16
+e8 ff df f2	0	+0x15c  movk x8, #0xffff, lsl #32
+00 01 3f d6	0	+0x160  blr x8
+b0 ff ff 17	0	+0x164  b 0xffff8ffb2924
+01 00 00 00	0	+0x168  udf #0x1
+00 00 00 00	0	+0x16c  udf #0x0
+e4 81 ec 17	0	+0x170  b 0xffff8fad3200
+1e 00 00 10	0	+0x174  adr x30, 0xffff8ffb2a74
+02 29 e9 17	0	+0x178  b 0xffff8f9fce80
+00 00 00 00	0	+0x17c  udf #0x0
